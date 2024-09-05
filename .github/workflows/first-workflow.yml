@@ -1,5 +1,15 @@
 name: ci
-on: [push, workflow_dispatch]
+on:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - main
+      - release
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/**'
 jobs:
   # Job 1
   build:
