@@ -1,0 +1,19 @@
+name: ci
+on: [push, workflow_dispatch]
+jobs:
+  # Job 1
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run a command
+        run: echo "Welcome to GitHub Actions!"
+  # Job 2
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: echo "Deployment Using GitHub Actions!"
