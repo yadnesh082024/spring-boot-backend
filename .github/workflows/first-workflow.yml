@@ -34,15 +34,11 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v3.0.0
+      - name: Build and analyze
         env:
+          GITHUB_TOKEN: ${{ secrets.PR_GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: 'github-actions-hands-on'
-          args: >
-            -Dsonar.organization=ci-cd-github-actions
-            -Dsonar.projectKey=yadnesh082024_github-actions-hands-on
+        run: ./gradlew build sonar --info
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
