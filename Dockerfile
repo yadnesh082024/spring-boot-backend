@@ -1,6 +1,9 @@
 # Use an official Temurin JRE runtime as a parent image
 FROM eclipse-temurin:17-jre
 
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
 # Set the working directory in the container
 WORKDIR /app
 
