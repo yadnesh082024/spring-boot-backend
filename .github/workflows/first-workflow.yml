@@ -37,11 +37,9 @@ jobs:
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         with:
-          organization: ${{ secrets.SONAR_ORGANIZATION }}
-          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          organization: 'ci-cd-github-actions'
+          projectKey: 'yadnesh082024_github-actions-hands-on'
+          token: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
