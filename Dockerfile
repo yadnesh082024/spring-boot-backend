@@ -1,4 +1,4 @@
-# Use an official Temurin JDK runtime as a parent image
+# Use an official temurin JDK runtime as a parent image
 FROM eclipse-temurin:17-jdk
 
 # Set the working directory in the container
