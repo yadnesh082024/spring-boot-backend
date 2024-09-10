@@ -35,11 +35,14 @@ jobs:
         run: ./gradlew test
 
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v2
+        uses: sonarsource/sonarcloud-github-action@v3.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          organization: 'ci-cd-github-actions'
-          projectKey: 'yadnesh082024_github-actions-hands-on'
-          token: ${{ secrets.SONAR_HOST_URL }}
+          projectBaseDir: 'github-actions-hands-on'
+          args: >
+            -Dsonar.organization=ci-cd-github-actions
+            -Dsonar.projectKey=yadnesh082024_github-actions-hands-on
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
