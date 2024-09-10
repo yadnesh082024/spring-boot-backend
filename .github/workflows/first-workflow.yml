@@ -2,7 +2,7 @@ name: Java CI with Gradle
 on:
   pull_request:
     types:
-      - opened
+      - merged
     branches:
       - main
   workflow_dispatch:
