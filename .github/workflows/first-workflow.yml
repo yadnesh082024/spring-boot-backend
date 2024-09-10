@@ -2,7 +2,7 @@ name: Java CI with Gradle
 on:
   pull_request:
     types:
-      - merged
+      - closed
     branches:
       - main
   workflow_dispatch:
@@ -33,6 +33,11 @@ jobs:
         run: ./gradlew test
 
       - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: ./gradlew sonarqube \
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
