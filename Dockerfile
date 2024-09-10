@@ -24,4 +24,4 @@ RUN ./gradlew build --no-daemon
 EXPOSE 8080
 
 # Set the entry point to run the application
-ENTRYPOINT ["java", "-jar", "build/libs/your-app-name.jar"]
+ENTRYPOINT ["java", "-jar", "build/libs/github-actions-backend.jar"]
