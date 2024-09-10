@@ -35,3 +35,15 @@ sonar {
 		property "sonar.host.url", "https://sonarcloud.io"
 	}
 }
+
+// Set the final name of the JAR file
+jar {
+	archiveBaseName.set('github-actions-backend') // Base name for the JAR file
+	archiveVersion.set('1.0.0') // Version of the JAR file (optional)
+	archiveFileName.set('github-actions-backend.jar') // Final name of the JAR file
+	manifest {
+		attributes(
+				'Main-Class': 'com.example.SimpleRestApiApplication' // Update with your main class if applicable
+		)
+	}
+}
