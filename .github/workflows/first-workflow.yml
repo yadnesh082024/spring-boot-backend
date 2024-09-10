@@ -35,7 +35,7 @@ jobs:
         run: ./gradlew test
 
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
+        uses: sonarsource/sonarcloud-github-action@v2
         with:
           organization: 'ci-cd-github-actions'
           projectKey: 'yadnesh082024_github-actions-hands-on'
