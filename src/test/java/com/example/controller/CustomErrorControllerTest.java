@@ -22,3 +22,5 @@ public class CustomErrorControllerTest {
                 .andExpect(content().string("ERROR : NOT FOUND"));
     }
 }
+
+
