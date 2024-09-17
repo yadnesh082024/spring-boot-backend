@@ -12,11 +12,9 @@ on:
       - 'main'
       - 'dev/**'
 jobs:
-  build:
+  Gradle Build and Test:
     runs-on: ubuntu-latest
-
     environment: backend-test-dev
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -48,6 +46,11 @@ jobs:
           name: code-coverage-report
           path: build/reports/jacoco/test/jacocoTestReport.xml
 
+  Sonarcloud Scan:
+    needs: Gradle Build and Test
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
         env:
@@ -58,8 +61,13 @@ jobs:
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.java.coveragePlugin=jacoco
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml      
 
+  push image to DockerHub:
+    needs: Sonarcloud Scan
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
