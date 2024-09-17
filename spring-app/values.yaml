@@ -11,5 +11,8 @@ image:
   tag: "20240913064912"
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
+  port: 80
+
+containers:
   port: 8080
