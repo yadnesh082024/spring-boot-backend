@@ -1,21 +1,21 @@
 # Stage 1: Build stage
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine as build
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy Gradle wrapper and dependencies files to leverage Docker caching
-COPY build.gradle settings.gradle ./
 COPY gradle ./gradle
-COPY gradlew ./
+COPY gradlew .
+COPY build.gradle settings.gradle ./
 
 # Grant execute permission to gradlew
 RUN chmod +x ./gradlew
 
-# Run the build process, skipping tests
-RUN ./gradlew clean build -x test --no-daemon
+# Download dependencies before copying the source code to speed up build caching
+RUN ./gradlew clean build -x test --no-daemon || return 0
 
-# Copy source code
+# Now copy the rest of the project
 COPY src ./src
 
 # Build the project and generate the JAR file
