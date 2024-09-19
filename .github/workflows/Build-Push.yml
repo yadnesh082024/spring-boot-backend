@@ -98,11 +98,24 @@ jobs:
       # Step to build and push the Docker image with a timestamp tag and branch-specific latest tag.
       - name: Build and push Docker image
         run: |
+          # Set the timezone
           export TZ=Asia/Kolkata
+
+          # Generate the timestamp for the image tag
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
+          # Get the branch name, replace '/' with '-'
           BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
-          IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${TIMESTAMP}
+
+          # Define the image tag with the timestamp
+          IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}
+
+          # Define the latest tag specific to the branch
           LATEST_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest
+
+          # Build the Docker image with both the timestamped and latest tags
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
+
+          # Push both the timestamped and latest images to the Docker registry
           docker push ${IMAGE_TAG}
           docker push ${LATEST_TAG}
