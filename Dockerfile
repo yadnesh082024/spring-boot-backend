@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM eclipse-temurin:17-jdk-alpine as build
+FROM eclipse-temurin:17-jdk-alpine AS build
 
 # Set the working directory in the container
 WORKDIR /app
@@ -8,7 +8,12 @@ WORKDIR /app
 COPY build.gradle settings.gradle ./
 COPY gradle ./gradle
 COPY gradlew ./
-RUN ./gradlew --no-daemon build -x test || return 0
+
+# Grant execute permission to gradlew
+RUN chmod +x ./gradlew
+
+# Run the build process, skipping tests
+RUN ./gradlew clean build -x test --no-daemon
 
 # Copy source code
 COPY src ./src
