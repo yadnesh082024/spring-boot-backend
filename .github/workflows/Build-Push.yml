@@ -64,6 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
+      - name: Check Branch Name
+        run: echo "Branch name is ${{ github.ref_name }}"
       # Step to perform a SonarCloud scan using the provided environment variables.
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
