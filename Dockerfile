@@ -13,19 +13,19 @@ COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 
 # Download dependencies before copying the source code to speed up build caching
-RUN ./gradlew clean build -x test --no-daemon || return 0
+RUN ./gradlew --no-daemon build -x test || return 0
 
 # Now copy the rest of the project
 COPY src ./src
 
-# Build the project and generate the JAR file
-RUN ./gradlew clean build -x test --no-daemon
+# Build the project and generate the JAR file (only build if needed)
+RUN ./gradlew --no-daemon clean build -x test
 
-# Stage 2: Production stage
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Production stage - use a minimal JRE or distroless image
+FROM gcr.io/distroless/java17-debian11 as production
 
 # Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER 1001
 
 # Set the working directory for the runtime
 WORKDIR /app
@@ -33,14 +33,8 @@ WORKDIR /app
 # Copy the JAR file from the build stage
 COPY --from=build /app/build/libs/*.jar /app/app.jar
 
-# Change ownership of the app directory and switch to the non-root user
-RUN chown -R appuser:appgroup /app && \
-    chmod +x /app/app.jar
-
-USER appuser
-
 # Expose the default Spring Boot port
 EXPOSE 8080
 
 # Run the Spring Boot application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
