@@ -94,11 +94,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step to build and push the Docker image with a timestamp tag and latest tag.
+      # Step to build and push the Docker image with a timestamp tag and branch-specific latest tag.
       - name: Build and push Docker image
         run: |
+          export TZ=Asia/Kolkata
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
           IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${TIMESTAMP}
-          LATEST_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:latest
+          LATEST_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
-          docker push ${IMAGE_TAG} --alias ${LATEST_TAG}
+          docker push ${IMAGE_TAG}
+          docker push ${LATEST_TAG}
