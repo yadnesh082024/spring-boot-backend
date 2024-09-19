@@ -1,4 +1,4 @@
-# Use an official Gradle image to build the app
+# Stage 1: Build stage
 FROM gradle:7.5.1-jdk17 AS build
 
 # Set the working directory in the container
@@ -11,7 +11,7 @@ COPY src ./src
 # Build the project and generate the JAR file
 RUN gradle clean build -x test
 
-# Use a minimal JRE image to run the application
+# Stage 2: Production stage
 FROM openjdk:17-jdk-alpine
 
 # Create a non-root user and group
