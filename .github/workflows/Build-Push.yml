@@ -101,5 +101,4 @@ jobs:
           IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${TIMESTAMP}
           LATEST_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:latest
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
-          docker push ${IMAGE_TAG}
-          docker push ${LATEST_TAG}
+          docker push ${IMAGE_TAG} --alias ${LATEST_TAG}
