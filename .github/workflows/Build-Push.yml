@@ -137,7 +137,7 @@ jobs:
 
       - name: Update Helm values
         run: |
-          sed -i 's/tag: .*/tag: main-latest/' spring-boot-backend-k8s-manifests/spring-boot-backend-helm-chart/values.yaml
+          sed -i 's/tag: .*/tag: main-latest/' spring-boot-backend-helm-chart/values.yaml
 
       - name: Commit and push changes
         run: |
