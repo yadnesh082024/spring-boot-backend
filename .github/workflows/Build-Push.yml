@@ -124,7 +124,7 @@ jobs:
           
   Update-manifests:
     if: github.ref == 'refs/heads/main'
-    needs: build
+    needs: Build-and-Push-image-to-DockerHub
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
