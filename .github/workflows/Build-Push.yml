@@ -132,7 +132,6 @@ jobs:
 
       - name: Set up Git
         run: |
-          git config --global user.email "yadnesh082024@gmail.com"
           git config --global user.name "GitHub-Actions-CI-Build"
 
       - name: Checkout K8s Manifests Repository
