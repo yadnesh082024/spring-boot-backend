@@ -133,7 +133,7 @@ jobs:
       - name: Update Helm values
         run: |
           IMAGE_TAG=${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
-          sed -i 's/tag: .*/tag: ${IMAGE_TAG}/' spring-boot-backend-helm-chart/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-backend-helm-chart/values.yaml
 
       - name: Check for changes
         id: changes
