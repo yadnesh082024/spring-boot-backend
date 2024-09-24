@@ -133,14 +133,13 @@ jobs:
         with:
           repository: yadnesh082024/spring-boot-backend-k8s-manifests
           token: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
-          path: spring-boot-backend-helm-chart
 
       - name: Verify file existence
-        run: ls -l values.yaml
+        run: ls -l spring-boot-backend-helm-chart/values.yaml
 
       - name: Update Helm values
         run: |
-          sed -i 's/tag: .*/tag: main-latest/' values.yaml
+          sed -i 's/tag: .*/tag: ${{ github.ref_name }}-latest/' spring-boot-backend-helm-chart/values.yaml
 
       - name: Commit and push changes
         run: |
