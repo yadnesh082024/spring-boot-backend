@@ -143,7 +143,6 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          cd spring-boot-backend-k8s-manifests
           git config --global user.email yadnesh082024@gmail.com
           git config --global user.name yadnesh
           git add .
