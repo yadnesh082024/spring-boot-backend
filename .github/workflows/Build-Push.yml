@@ -107,7 +107,7 @@ jobs:
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
           docker push ${IMAGE_TAG}
           docker push ${LATEST_TAG}
-          echo "::set-output name=image_tag::${IMAGE_TAG}"
+          echo "::set-output name=image_tag::${BRANCH_NAME}-${TIMESTAMP}"
 
   Update-manifests:
     runs-on: ubuntu-latest
