@@ -136,7 +136,7 @@ jobs:
           path: spring-boot-backend-helm-chart
 
       - name: Verify file existence
-        run: ls -l spring-boot-backend-helm-chart/values.yaml
+        run: ls -l values.yaml
 
       - name: Update Helm values
         run: |
