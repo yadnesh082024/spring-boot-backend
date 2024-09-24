@@ -135,9 +135,12 @@ jobs:
           token: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
           path: spring-boot-backend-helm-chart
 
+      - name: Verify file existence
+        run: ls -l spring-boot-backend-helm-chart/values.yaml
+
       - name: Update Helm values
         run: |
-          sed -i 's/tag: .*/tag: main-latest/' spring-boot-backend-helm-chart/values.yaml
+          sed -i 's/tag: .*/tag: main-latest/' values.yaml
 
       - name: Commit and push changes
         run: |
