@@ -64,6 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
+      - name: Check Branch Name
+        run: echo "Branch name is ${{ github.ref_name }}"
       # Step to perform a SonarCloud scan using the provided environment variables.
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
@@ -119,3 +121,29 @@ jobs:
           # Push both the timestamped and latest images to the Docker registry
           docker push ${IMAGE_TAG}
           docker push ${LATEST_TAG}
+          
+  Update-manifests:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      - name: Checkout K8s Manifests Repository
+        uses: actions/checkout@v4
+        with:
+          repository: yadnesh082024/spring-boot-backend-k8s-manifests
+          token: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
+          path: spring-boot-backend-helm-chart
+
+      - name: Update Helm values
+        run: |
+          sed -i 's/tag: .*/tag: main-latest/' spring-boot-backend-k8s-manifests/spring-boot-backend-helm-chart/values.yaml
+
+      - name: Commit and push changes
+        run: |
+          cd helm-charts
+          git config --global user.email yadnesh082024@gmail.com
+          git config --global user.name yadnesh
+          git add .
+          git commit -m "Update image tag to main-latest"
+          git push origin main
