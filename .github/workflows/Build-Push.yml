@@ -102,8 +102,8 @@ jobs:
           export TZ=Asia/Kolkata
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
-          IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}
-          LATEST_TAG=${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest
+          IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}"
+          LATEST_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest"
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
           docker push ${IMAGE_TAG}
           docker push ${LATEST_TAG}
@@ -132,7 +132,7 @@ jobs:
 
       - name: Update Helm values
         run: |
-          IMAGE_TAG=${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
+          IMAGE_TAG="${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}"
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-backend-helm-chart/values.yaml
 
       - name: Check for changes
