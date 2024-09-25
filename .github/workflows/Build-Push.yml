@@ -164,5 +164,6 @@ jobs:
         run: |
           git checkout -b update-${{ github.ref_name }}
           git commit -m "Update image tag to ${IMAGE_TAG}"
+          git pull origin update-${{ github.ref_name }} --rebase
           git push origin update-${{ github.ref_name }}
           gh pr create --title "updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
