@@ -131,8 +131,9 @@ jobs:
         run: ls -l spring-boot-backend-helm-chart/values.yaml
 
       - name: Update Helm values
+        env:
+          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
         run: |
-          IMAGE_TAG="${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}"
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-backend-helm-chart/values.yaml
 
       - name: Check for changes
@@ -149,12 +150,16 @@ jobs:
 
       - name: Commit and push changes if branch is main
         if: github.ref == 'refs/heads/main' && steps.changes.outputs.changes == 'true'
+        env:
+          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
         run: |
           git commit -m "Update image tag to ${IMAGE_TAG}"
           git push origin main
 
       - name: Create pull request if branch is not main
         if: github.ref != 'refs/heads/main' && steps.changes.outputs.changes == 'true'
+        env:
+          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
         run: |
           git checkout -b update-${{ github.ref_name }}
           git commit -m "Update image tag to ${IMAGE_TAG}"
