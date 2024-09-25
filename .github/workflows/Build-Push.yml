@@ -163,6 +163,8 @@ jobs:
           IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
           GH_TOKEN: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
         run: |
+          git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
           git checkout -b update-${{ github.ref_name }}
           git commit -m "Update image tag to ${IMAGE_TAG}"
           git pull origin update-${{ github.ref_name }} --rebase
