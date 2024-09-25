@@ -120,6 +120,7 @@ jobs:
       - name: Set up Git with workflow user
         run: |
           git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
 
       - name: Checkout K8s Manifests Repository
         uses: actions/checkout@v4
