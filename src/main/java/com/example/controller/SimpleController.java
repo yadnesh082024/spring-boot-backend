@@ -12,4 +12,9 @@ public class SimpleController {
     public ResponseEntity<String> greet() {
         return  new ResponseEntity<>("WELCOME", HttpStatus.ACCEPTED);
     }
+
+    @GetMapping("/hello")
+    public ResponseEntity<String> greetHello() {
+        return  new ResponseEntity<>("HELLO", HttpStatus.ACCEPTED);
+    }
 }
