@@ -168,9 +168,14 @@ jobs:
           git checkout -b update-feature/${{ github.ref_name }} origin/main
           git commit -m "Update image tag to ${IMAGE_TAG}"
           
+          # Check if the branch already exists on the remote
           if git ls-remote --heads origin update-feature/${{ github.ref_name }}; then
+              # If it exists, pull the latest changes
               git pull origin update-feature/${{ github.ref_name }} --rebase
           fi
           
+          # Push the new branch
           git push -u origin update-feature/${{ github.ref_name }}
+          
+          # Create the pull request
           gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
