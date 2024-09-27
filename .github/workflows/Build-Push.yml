@@ -120,6 +120,7 @@ jobs:
       - name: Set up Git with workflow user
         run: |
           git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
 
       - name: Checkout K8s Manifests Repository
         uses: actions/checkout@v4
@@ -160,8 +161,26 @@ jobs:
         if: github.ref != 'refs/heads/main' && steps.changes.outputs.changes == 'true'
         env:
           IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
+          GH_TOKEN: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
         run: |
-          git checkout -b update-${{ github.ref_name }}
-          git commit -m "Update image tag to ${IMAGE_TAG}"
-          git push origin update-${{ github.ref_name }}
-          gh pr create --title "updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
+          # Configure Git user
+          git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
+          
+          # Get current timestamp
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          
+          # Create a unique branch name using the timestamp
+          BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+          
+          # Create a new branch based on origin/main
+          git checkout -b $BRANCH_NAME origin/main
+          
+          # Make changes and commit
+          git commit -m "Update image tag to ${IMAGE_TAG}" spring-boot-backend-helm-chart/values.yaml
+          
+          # Push the new branch
+          git push -u origin $BRANCH_NAME
+          
+          # Create the pull request
+          gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
