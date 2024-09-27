@@ -163,19 +163,24 @@ jobs:
           IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
           GH_TOKEN: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
         run: |
+          # Configure Git user
           git config --global user.name "GitHub-Actions-CI-Build"
           git config --global user.email "user@gitHubActions.com"
-          git checkout -b update-feature/${{ github.ref_name }} origin/main
-          git commit -m "Update image tag to ${IMAGE_TAG}"
           
-          # Check if the branch already exists on the remote
-          if git ls-remote --heads origin update-feature/${{ github.ref_name }}; then
-              # If it exists, pull the latest changes
-              git pull origin update-feature/${{ github.ref_name }} --rebase
-          fi
+          # Get current timestamp
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          
+          # Create a unique branch name using the timestamp
+          BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+          
+          # Create a new branch based on origin/main
+          git checkout -b $BRANCH_NAME origin/main
+          
+          # Make changes and commit
+          git commit -m "Update image tag to ${IMAGE_TAG}" spring-boot-backend-helm-chart/values.yaml
           
           # Push the new branch
-          git push -u origin update-feature/${{ github.ref_name }}
+          git push -u origin $BRANCH_NAME
           
           # Create the pull request
           gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
