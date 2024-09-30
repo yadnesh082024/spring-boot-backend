@@ -1,5 +1,8 @@
 package com.example.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,12 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CustomErrorController implements ErrorController {
 
-    @GetMapping("/error")
-    public ResponseEntity<String> handleError() {
-        return new ResponseEntity<>("ERROR : NOT FOUND", HttpStatus.NOT_FOUND);
-    }
+    private static final Logger logger = LoggerFactory.getLogger(CustomErrorController.class);
 
-    public String getErrorPath() {
-        return "/error";
+    @GetMapping("/error")
+    public ResponseEntity<String> handleError(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        logger.info("Unmapped endpoint called ");
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("No implementation is defined for this endpoint");
     }
 }
+
+
+
