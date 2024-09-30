@@ -1,5 +1,7 @@
 package com.example.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,13 +10,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SimpleController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SimpleController.class);
+
     @GetMapping("/")
     public ResponseEntity<String> greet() {
-        return  new ResponseEntity<>("WELCOME", HttpStatus.ACCEPTED);
+        logger.info("Greeting endpoint called");
+        return ResponseEntity.ok("WELCOME");
     }
 
-    @GetMapping("/hello")
-    public ResponseEntity<String> greetHello() {
-        return  new ResponseEntity<>("HELLO", HttpStatus.ACCEPTED);
+    @GetMapping("/resource-created")
+    public ResponseEntity<String> responseCreated() {
+        logger.info("Resource created endpoint called");
+        return ResponseEntity.status(HttpStatus.CREATED).body("CREATED");
+    }
+
+    @GetMapping("/resource-accepted")
+    public ResponseEntity<String> responseAccepted() {
+        logger.info("Resource accepted endpoint called");
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("ACCEPTED");
     }
 }
+
+

@@ -18,7 +18,7 @@ public class SimpleControllerTest {
     @Test
     public void testGreet() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/"))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(content().string("WELCOME"));
     }
 }
