@@ -161,6 +161,7 @@ jobs:
         env:
           NEW_VERSION: ${{ env.new_version }}
         run: |
+          # Update the appVersion in Chart.yaml to the new version in the format year.month.patchnumber
           sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION}\"/" spring-boot-backend-helm-chart/Chart.yaml
 
       - name: Check for changes
