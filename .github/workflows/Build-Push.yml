@@ -140,16 +140,21 @@ jobs:
       - name: Extract current appVersion
         id: extract_version
         run: |
-          current_version=$(grep '^appVersion:' spring-boot-backend-helm-chart/Chart.yaml | cut -d ' ' -f 2)
+          current_version=$(grep '^appVersion:' spring-boot-backend-helm-chart/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
           echo "current_version=${current_version}" >> $GITHUB_ENV
 
       - name: Increment appVersion
         id: increment_version
         run: |
           current_version=${{ env.current_version }}
-          IFS='.' read -r -a version_parts <<< "$current_version"
-          version_parts[2]=$((version_parts[2] + 1))
-          new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+          current_date=$(date +'%Y.%m')
+          if [[ $current_version == $current_date* ]]; then
+            patch_number=$(echo $current_version | cut -d '.' -f 3)
+            patch_number=$((patch_number + 1))
+          else
+            patch_number=0
+          fi
+          new_version="${current_date}.${patch_number}"
           echo "new_version=${new_version}" >> $GITHUB_ENV
 
       - name: Update appVersion in Chart.yaml
