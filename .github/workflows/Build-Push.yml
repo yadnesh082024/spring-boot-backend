@@ -137,6 +137,27 @@ jobs:
         run: |
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-backend-helm-chart/values.yaml
 
+      - name: Extract current appVersion
+        id: extract_version
+        run: |
+          current_version=$(grep '^appVersion:' spring-boot-backend-helm-chart/Chart.yaml | cut -d ' ' -f 2)
+          echo "current_version=${current_version}" >> $GITHUB_ENV
+
+      - name: Increment appVersion
+        id: increment_version
+        run: |
+          current_version=${{ env.current_version }}
+          IFS='.' read -r -a version_parts <<< "$current_version"
+          version_parts[2]=$((version_parts[2] + 1))
+          new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+          echo "new_version=${new_version}" >> $GITHUB_ENV
+
+      - name: Update appVersion in Chart.yaml
+        env:
+          NEW_VERSION: ${{ env.new_version }}
+        run: |
+          sed -i "s/^appVersion:.*/appVersion: ${NEW_VERSION}/" spring-boot-backend-helm-chart/Chart.yaml
+
       - name: Check for changes
         id: changes
         run: |
