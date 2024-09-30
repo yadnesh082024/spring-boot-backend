@@ -16,9 +16,23 @@ public class SimpleControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    public void testGreet() throws Exception {
+    public void testResponseCreated() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("WELCOME"));
+    }
+
+    @Test
+    public void testResponseAccepted() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/resource-created"))
+                .andExpect(status().isCreated())
+                .andExpect(content().string("CREATED"));
+    }
+
+    @Test
+    public void testGreet() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/resource-accepted"))
+                .andExpect(status().isAccepted())
+                .andExpect(content().string("ACCEPTED"));
     }
 }

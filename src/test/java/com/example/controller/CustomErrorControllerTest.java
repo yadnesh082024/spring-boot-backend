@@ -18,8 +18,8 @@ public class CustomErrorControllerTest {
     @Test
     public void handleErrorShouldReturnErrorMessage() throws Exception {
         mockMvc.perform(get("/error"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("ERROR : NOT FOUND"));
+                .andExpect(status().isNotImplemented())
+                .andExpect(content().string("No implementation is defined for this endpoint"));
     }
 }
 
