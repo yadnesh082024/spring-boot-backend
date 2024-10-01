@@ -37,6 +37,12 @@ public class SimpleController {
         logger.info("Resource Not Acceptable endpoint called");
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("NOT_ACCEPTABLE");
     }
+
+    @GetMapping("/resource-not-acceptable")
+    public ResponseEntity<String> responseNotImplemented() {
+        logger.info("Resource Not Implemented endpoint called");
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("NOT_IMPLEMENTED");
+    }
 }
 
 
