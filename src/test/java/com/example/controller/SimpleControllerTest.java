@@ -15,23 +15,24 @@ public class SimpleControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private static final String  baseUri = "/spring-app";
     @Test
     public void testResponseCreated() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/"))
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("WELCOME"));
     }
 
     @Test
     public void testResponseAccepted() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/resource-created"))
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/resource-created"))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("CREATED"));
     }
 
     @Test
     public void testGreet() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/resource-accepted"))
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/resource-accepted"))
                 .andExpect(status().isAccepted())
                 .andExpect(content().string("ACCEPTED"));
     }
