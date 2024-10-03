@@ -7,7 +7,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(SimpleController.class)
 public class SimpleControllerTest {
@@ -15,25 +15,45 @@ public class SimpleControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private static final String  baseUri = "/spring-app";
+    private static final String baseUri = "/spring-app";
+
+    @Test
+    public void testGreet() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("200"))
+                .andExpect(jsonPath("$.message").value("WELCOME"));
+    }
+
     @Test
     public void testResponseCreated() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("WELCOME"));
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/resource-created"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("201"))
+                .andExpect(jsonPath("$.message").value("CREATED"));
     }
 
     @Test
     public void testResponseAccepted() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/resource-created"))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("CREATED"));
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/resource-accepted"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("202"))
+                .andExpect(jsonPath("$.message").value("ACCEPTED"));
     }
 
     @Test
-    public void testGreet() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(baseUri+"/resource-accepted"))
-                .andExpect(status().isAccepted())
-                .andExpect(content().string("ACCEPTED"));
+    public void testResponseNotAcceptable() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/resource-not-acceptable"))
+                .andExpect(status().isNotAcceptable())
+                .andExpect(jsonPath("$.status").value("406"))
+                .andExpect(jsonPath("$.message").value("NOT_ACCEPTABLE"));
+    }
+
+    @Test
+    public void testResponseNotImplemented() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/resource-not-implemented"))
+                .andExpect(status().isNotImplemented())
+                .andExpect(jsonPath("$.status").value("501"))
+                .andExpect(jsonPath("$.message").value("NOT_IMPLEMENTED"));
     }
 }
