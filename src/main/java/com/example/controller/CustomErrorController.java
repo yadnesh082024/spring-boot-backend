@@ -9,18 +9,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class CustomErrorController implements ErrorController {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomErrorController.class);
 
     @GetMapping("/error")
-    public ResponseEntity<String> handleError(HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> handleError(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        logger.info("Unmapped endpoint called ");
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("No implementation is defined for this endpoint");
+        logger.info("Unmapped endpoint called: " + uri);
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "501");
+        response.put("message", "No implementation is defined for this endpoint");
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
     }
 }
-
-
-
