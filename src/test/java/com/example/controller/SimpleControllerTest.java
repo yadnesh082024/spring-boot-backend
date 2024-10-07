@@ -56,4 +56,12 @@ public class SimpleControllerTest {
                 .andExpect(jsonPath("$.status").value("501"))
                 .andExpect(jsonPath("$.message").value("NOT_IMPLEMENTED"));
     }
+
+    @Test
+    public void testResponseContinue() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUri + "/continue"))
+                .andExpect(status().isContinue())
+                .andExpect(jsonPath("$.status").value("100"))
+                .andExpect(jsonPath("$.message").value("CONTINUE"));
+    }
 }
