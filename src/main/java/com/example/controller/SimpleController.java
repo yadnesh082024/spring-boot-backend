@@ -18,6 +18,7 @@ public class SimpleController {
     public ResponseEntity<ApiResponse> greet() {
         logger.info("Greeting endpoint called");
         ApiResponse response = new ApiResponse("200", "WELCOME");
+        logger.info("Response: {}", response);
         return ResponseEntity.ok(response);
     }
 
@@ -32,6 +33,7 @@ public class SimpleController {
     public ResponseEntity<ApiResponse> responseAccepted() {
         logger.info("Resource accepted endpoint called");
         ApiResponse response = new ApiResponse("202", "ACCEPTED");
+        logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
@@ -39,6 +41,7 @@ public class SimpleController {
     public ResponseEntity<ApiResponse> responseNotAcceptable() {
         logger.info("Resource Not Acceptable endpoint called");
         ApiResponse response = new ApiResponse("406", "NOT_ACCEPTABLE");
+        logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
     }
 
@@ -46,6 +49,7 @@ public class SimpleController {
     public ResponseEntity<ApiResponse> responseNotImplemented() {
         logger.info("Resource Not Implemented endpoint called");
         ApiResponse response = new ApiResponse("501", "NOT_IMPLEMENTED");
+        logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
     }
 
@@ -53,6 +57,7 @@ public class SimpleController {
     public ResponseEntity<ApiResponse> responseContinue() {
         logger.info("Continue endpoint called");
         ApiResponse response = new ApiResponse("100", "CONTINUE");
+        logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.CONTINUE).body(response);
     }
 }
