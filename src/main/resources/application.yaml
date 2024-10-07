@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: Simple-REST-API
+
+server:
+  error:
+    path: /error
+
+management:
+  endpoints:
+    base-path: /custom-actuator
+    web:
+      exposure:
+        include: "*"
+        # Commonly used Spring Boot Actuator endpoints:
+        # health       - Provides application health status.
+        # metrics      - Exposes application metrics.
+        # info         - Displays application information (version, description, etc.).
+        # env          - Exposes environment properties.
+        # loggers      - Allows viewing and modifying logging levels.
+        # threaddump   - Provides a thread dump of the application.
+        # heapdump     - Generates a heap dump of the JVM.
+        # httptrace    - Traces HTTP requests and responses (requires Spring Cloud).
+        # caches       - Provides information about cache usage (if caching is used).
+        # scheduledtasks - Displays scheduled tasks.
+        # shutdown     - Allows graceful shutdown of the application (must be explicitly enabled).
+        #
+        # Special values:
+        # *            - Expose all available endpoints.
+        # none         - No endpoints will be exposed.
+  endpoint:
+    # Configuration for the health endpoint
+    health:
+      show-details: always  # Options: never, when_authorized, always
+      # Controls the visibility of detailed health information.
+      # You can further configure specific health indicators if needed.
+
+    # Configuration for the Prometheus endpoint
+    prometheus:
+      enabled: true  # Enables the Prometheus metrics endpoint.
+
+    # Configuration for the loggers endpoint
+    loggers:
+      enabled: true  # Enables the loggers endpoint for dynamic logging level adjustments.
+
+    # Configuration for other actuator endpoints:
+
+    # info: Provides application information (version, description, etc.)
+    # info:
+    #   enabled: true  # Enables the info endpoint.
+
+    # metrics: Exposes application metrics for monitoring.
+    # metrics:
+    #   enabled: true  # Enables the metrics endpoint.
+
+    # env: Exposes environment properties (system properties and config).
+    # env:
+    #   enabled: true  # Enables the environment endpoint.
+
+    # threaddump: Provides a thread dump of the application.
+    # threaddump:
+    #   enabled: true  # Enables the thread dump endpoint.
+
+    # shutdown: Allows graceful shutdown of the application (must be explicitly enabled).
+    # shutdown:
+    #   enabled: true  # Enables the shutdown endpoint.
+
+    # scheduledtasks: Displays scheduled tasks information.
+    # scheduledtasks:
+    #   enabled: true  # Enables the scheduled tasks endpoint.
+
+    # Additional configurations for endpoints can be added as needed.
+    # Each endpoint can have its own enabled/disabled setting, and some can have specific configurations.
+
