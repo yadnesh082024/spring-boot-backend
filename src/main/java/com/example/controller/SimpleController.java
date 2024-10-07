@@ -48,4 +48,11 @@ public class SimpleController {
         ApiResponse response = new ApiResponse("501", "NOT_IMPLEMENTED");
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
     }
+
+    @GetMapping("/continue")
+    public ResponseEntity<ApiResponse> responseContinue() {
+        logger.info("Continue endpoint called");
+        ApiResponse response = new ApiResponse("100", "CONTINUE");
+        return ResponseEntity.status(HttpStatus.CONTINUE).body(response);
+    }
 }
