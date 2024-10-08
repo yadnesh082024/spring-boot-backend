@@ -72,3 +72,7 @@ management:
     # Additional configurations for endpoints can be added as needed.
     # Each endpoint can have its own enabled/disabled setting, and some can have specific configurations.
 
+# Environment variables
+pod:
+  name: ${POD_NAME}
+  image: ${IMAGE_NAME}
