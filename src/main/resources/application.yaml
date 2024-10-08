@@ -8,8 +8,8 @@ server:
 
 management:
   endpoints:
-    base-path: /custom-actuator
     web:
+      base-path: /spring-app
       exposure:
         include: "*"
         # Commonly used Spring Boot Actuator endpoints:
