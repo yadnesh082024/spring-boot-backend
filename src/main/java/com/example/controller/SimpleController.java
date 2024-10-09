@@ -67,4 +67,12 @@ public class SimpleController {
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.CONTINUE).body(response);
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<ApiResponse> responseTest() {
+        logger.info("test endpoint called from pod: {{}} and image: {{}}", podName, imageName);
+        ApiResponse response = new ApiResponse("200", "TEST", podName, imageName);
+        logger.info("Response: {}", response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
