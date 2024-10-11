@@ -85,6 +85,7 @@ jobs:
       - name: Build and Push Docker Image
         id: build
         run: |
+          export TZ=Asia/Kolkata
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}"
