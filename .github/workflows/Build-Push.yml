@@ -116,7 +116,7 @@ jobs:
       # Update Helm values with the new image tag.
       - name: Update Helm Values
         env:
-          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
         run: |
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-cd/values.yaml
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
@@ -164,7 +164,7 @@ jobs:
       # Check for changes, commit if necessary, and create a pull request if not on main.
       - name: Check for Changes and Commit
         env:
-          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
         run: |
           git add .
           if ! git diff-index --quiet HEAD --; then
