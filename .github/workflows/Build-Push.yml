@@ -1,72 +1,57 @@
 name: Backend CI Pipeline
 
-# Trigger the workflow on pull requests assigned to the 'main' branch,
-# manual dispatch, and pushes to 'main' or any 'dev/**' branches.
+# Workflow triggers for pull requests, manual dispatch, and pushes to specific branches.
 on:
   pull_request:
-    types:
-      - assigned
-    branches:
-      - main
-
+    types: [assigned]
+    branches: [main]
   workflow_dispatch:
   push:
     branches:
-      - 'main'
-      - 'dev/**'
+      - main
+      - dev/**
 
 jobs:
-  Gradle-Build-and-Test:
-    # Define the job to run on the latest Ubuntu environment.
+  build-test:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
-      # Step to check out the repository code.
+      # Checkout the repository code.
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step to set up JDK 17 using the Temurin distribution.
+      # Set up JDK 17 for the build process.
       - name: Set up JDK 17
         uses: actions/setup-java@v4.3.0
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Step to grant execute permissions to the Gradle wrapper script.
+      # Grant execute permissions to the Gradle wrapper script.
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # Step to build the project using Gradle.
-      - name: Build with Gradle
-        run: ./gradlew build
+      # Build the project and run tests using Gradle.
+      - name: Build and Test with Gradle
+        run: |
+          ./gradlew build
+          ./gradlew test jacocoTestReport
 
-      # Step to run tests and generate a code coverage report using Gradle.
-      - name: Run tests
-        run: ./gradlew test jacocoTestReport
-
-      # Step to upload the test results as an artifact.
-      - name: Upload test results
+      # Upload build and test results as artifacts.
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/test-results/test
+          path: |
+            build/test-results/test
+            build/reports/jacoco/test/jacocoTestReport.xml
 
-      # Step to upload the code coverage report as an artifact.
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-report
-          path: build/reports/jacoco/test/jacocoTestReport.xml
-
-  Sonarcloud-Scan:
-    # Define the job to run after the 'Gradle-Build-and-Test' job.
-    needs: Gradle-Build-and-Test
+  sonarcloud-scan:
+    needs: build-test
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
-      - name: Check Branch Name
-        run: echo "Branch name is ${{ github.ref_name }}"
-      # Step to perform a SonarCloud scan using the provided environment variables.
+      # Perform a SonarCloud scan to analyze the codebase for quality and vulnerabilities.
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v3.0.0
         env:
@@ -80,28 +65,29 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
             -Dsonar.branch.name=${{ github.ref_name }}
 
-  Build-and-Push-image-to-DockerHub:
-    needs: Sonarcloud-Scan
+  docker-build-push:
+    needs: sonarcloud-scan
     runs-on: ubuntu-latest
     environment: backend-test-dev
-    outputs:
-      image_tag: ${{ steps.build.outputs.image_tag }}
     steps:
+      # Checkout the repository code again for Docker build.
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Log in to Docker Hub using credentials stored in secrets.
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.3.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      # Build and push Docker images with tags based on branch name and timestamp.
+      - name: Build and Push Docker Image
         id: build
         run: |
           export TZ=Asia/Kolkata
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
           IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}"
           LATEST_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest"
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
@@ -109,105 +95,64 @@ jobs:
           docker push ${LATEST_TAG}
           echo "image_tag=${BRANCH_NAME}-${TIMESTAMP}" >> $GITHUB_OUTPUT
 
-  Update-manifests:
+  update-manifests:
+    needs: docker-build-push
     runs-on: ubuntu-latest
-    needs: Build-and-Push-image-to-DockerHub
     environment: backend-test-dev
     steps:
-      - name: Checkout spring-boot-backend repository
-        uses: actions/checkout@v4
-
-      - name: Set up Git with workflow user
-        run: |
-          git config --global user.name "GitHub-Actions-CI-Build"
-          git config --global user.email "user@gitHubActions.com"
-
-      - name: Checkout K8s Manifests Repository
+      # Checkout the Kubernetes manifests repository.
+      - name: Checkout Manifests
         uses: actions/checkout@v4
         with:
           repository: yadnesh082024/spring-boot-backend-k8s-manifests
           token: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
 
-      - name: Verify file existence
-        run: ls -l spring-boot-backend-helm-chart/values.yaml
-
-      - name: Update Helm values
-        env:
-          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
+      # Set up Git configuration for committing changes.
+      - name: Set up Git
         run: |
-          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-backend-helm-chart/values.yaml
-
-      - name: Extract current appVersion
-        id: extract_version
-        run: |
-          current_version=$(grep '^appVersion:' spring-boot-backend-helm-chart/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
-          echo "current_version=${current_version}" >> $GITHUB_ENV
-
-      - name: Increment appVersion
-        id: increment_version
-        run: |
-          current_version=${{ env.current_version }}
-          current_date=$(date +'%Y.%m')
-          if [[ $current_version == $current_date* ]]; then
-            patch_number=$(echo $current_version | cut -d '.' -f 3)
-            patch_number=$((patch_number + 1))
-          else
-            patch_number=0
-          fi
-          new_version="${current_date}.${patch_number}"
-          echo "new_version=${new_version}" >> $GITHUB_ENV
-
-      - name: Update appVersion in Chart.yaml
-        env:
-          NEW_VERSION: ${{ env.new_version }}
-        run: |
-          # Update the appVersion in Chart.yaml to the new version in the format year.month.patchnumber
-          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION}\"/" spring-boot-backend-helm-chart/Chart.yaml
-
-      - name: Check for changes
-        id: changes
-        run: |
-          git add .
-          if git diff-index --quiet HEAD --; then
-            echo "No changes to commit"
-            echo "changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected"
-            echo "changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push changes if branch is main
-        if: github.ref == 'refs/heads/main' && steps.changes.outputs.changes == 'true'
-        env:
-          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
-        run: |
-          git commit -m "updated image tag to ${IMAGE_TAG}"
-          git push origin main
-
-      - name: Create pull request if branch is not main
-        if: github.ref != 'refs/heads/main' && steps.changes.outputs.changes == 'true'
-        env:
-          IMAGE_TAG: ${{ needs.Build-and-Push-image-to-DockerHub.outputs.image_tag }}
-          GH_TOKEN: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
-        run: |
-          # Configure Git user
           git config --global user.name "GitHub-Actions-CI-Build"
           git config --global user.email "user@gitHubActions.com"
-          
-          # Get current timestamp
-          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-          
-          # Create a unique branch name using the timestamp
-          BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
-          
-          # Create a new branch based on origin/main
-          git checkout -b $BRANCH_NAME origin/main
-          
-          # Make changes and commit
-          git commit -m "Update image tag to ${IMAGE_TAG}" spring-boot-backend-helm-chart/values.yaml
-          
-          # Push the new branch
-          git push -u origin $BRANCH_NAME
-          
-          # Create the pull request
-          gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
+
+      # Update Helm values with the new image tag.
+      - name: Update Helm Values
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-cd/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
+
+  check-commit-changes:
+    needs: update-manifests
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      # Set up Git configuration again for the new job.
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
+
+      # Check for changes, commit if necessary, and create a pull request if not on main.
+      - name: Check for Changes and Commit
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+          git add .
+          if ! git diff-index --quiet HEAD --; then
+            if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+              git commit -m "Updated image tag to ${IMAGE_TAG}"
+              git push origin main || echo "Push failed, possibly due to lack of permissions"
+            else
+              # Create a pull request if the branch is not main
+              TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+              BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+              git checkout -b $BRANCH_NAME
+              git commit -m "Update image tag to ${IMAGE_TAG}"
+              git push -u origin $BRANCH_NAME
+
+              # Create the pull request using GitHub CLI
+              gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
+            fi
+          else
+            echo "No changes detected."
+          fi
