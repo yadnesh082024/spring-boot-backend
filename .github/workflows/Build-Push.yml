@@ -69,6 +69,8 @@ jobs:
     needs: sonarcloud-scan
     runs-on: ubuntu-latest
     environment: backend-test-dev
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
     steps:
       # Checkout the repository code again for Docker build.
       - name: Checkout Code
@@ -87,7 +89,7 @@ jobs:
         run: |
           export TZ=Asia/Kolkata
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          BRANCH_NAME=${GITHUB_REF#refs/heads/} | tr '/' '-'
           IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}"
           LATEST_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest"
           docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
