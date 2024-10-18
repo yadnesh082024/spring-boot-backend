@@ -22,6 +22,8 @@ public class CustomErrorControllerTest {
                 .andExpect(jsonPath("$.status").value("501"))
                 .andExpect(jsonPath("$.message").value("No implementation is defined for this endpoint"))
                 .andExpect(jsonPath("$.podName").value("Unknown"))
-                .andExpect(jsonPath("$.imageName").value("Unknown"));
+                .andExpect(jsonPath("$.imageName").value("Unknown"))
+                .andExpect(jsonPath("$.timezone").value("Asia/Kolkata"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 }
