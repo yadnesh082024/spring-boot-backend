@@ -21,6 +21,8 @@ public class SimpleControllerTest {
     private static final String MESSAGE_PATH = "$.message";
     private static final String POD_NAME_PATH = "$.podName";
     private static final String IMAGE_NAME_PATH = "$.imageName";
+    private static final String TIMEZONE_PATH = "$.timezone";
+    private static final String TIMESTAMP_PATH = "$.timestamp";
 
     @ParameterizedTest
     @CsvSource({
@@ -37,6 +39,8 @@ public class SimpleControllerTest {
                 .andExpect(jsonPath(STATUS_PATH).value(String.valueOf(expectedStatus)))
                 .andExpect(jsonPath(MESSAGE_PATH).value(expectedMessage))
                 .andExpect(jsonPath(POD_NAME_PATH).value("Unknown"))
-                .andExpect(jsonPath(IMAGE_NAME_PATH).value("Unknown"));
+                .andExpect(jsonPath(IMAGE_NAME_PATH).value("Unknown"))
+                .andExpect(jsonPath(TIMEZONE_PATH).value("Asia/Kolkata"))
+                .andExpect(jsonPath(TIMESTAMP_PATH).exists());
     }
 }
