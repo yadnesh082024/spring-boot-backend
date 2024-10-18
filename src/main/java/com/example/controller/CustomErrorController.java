@@ -24,7 +24,7 @@ public class CustomErrorController implements ErrorController {
     @GetMapping("/error")
     public ResponseEntity<ApiResponse> handleError(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        logger.info("Unmapped endpoint called: {}, from pod: {{}} and image: {{}}", uri, podName, imageName);
+        logger.info("Unmapped endpoint called: {}, from pod: {} and image: {}", uri, podName, imageName);
         ApiResponse response = new ApiResponse("501", "No implementation is defined for this endpoint", podName, imageName);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
     }
