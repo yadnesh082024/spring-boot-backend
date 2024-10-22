@@ -23,7 +23,7 @@ public class SimpleController {
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse> greet() {
-        logger.info("Greeting endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Greeting endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("200", "WELCOME", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.ok(response);
@@ -31,14 +31,14 @@ public class SimpleController {
 
     @GetMapping("/resource-created")
     public ResponseEntity<ApiResponse> responseCreated() {
-        logger.info("Resource created endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Resource created endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("201", "CREATED", podName, imageName);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/resource-accepted")
     public ResponseEntity<ApiResponse> responseAccepted() {
-        logger.info("Resource accepted endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Resource accepted endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("202", "ACCEPTED", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
@@ -46,7 +46,7 @@ public class SimpleController {
 
     @GetMapping("/resource-not-acceptable")
     public ResponseEntity<ApiResponse> responseNotAcceptable() {
-        logger.info("Resource Not Acceptable endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Resource Not Acceptable endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("406", "NOT_ACCEPTABLE", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
@@ -54,7 +54,7 @@ public class SimpleController {
 
     @GetMapping("/resource-not-implemented")
     public ResponseEntity<ApiResponse> responseNotImplemented() {
-        logger.info("Resource Not Implemented endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Resource Not Implemented endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("501", "NOT_IMPLEMENTED", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(response);
@@ -62,7 +62,7 @@ public class SimpleController {
 
     @GetMapping("/continue")
     public ResponseEntity<ApiResponse> responseContinue() {
-        logger.info("Continue endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("Continue endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("100", "CONTINUE", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.CONTINUE).body(response);
@@ -70,7 +70,7 @@ public class SimpleController {
 
     @GetMapping("/test")
     public ResponseEntity<ApiResponse> responseTest() {
-        logger.info("test endpoint called from pod: {} and image: {}", podName, imageName);
+        logger.info("test endpoint called from pod: \"{}\" and image: \"{}\"", podName, imageName);
         ApiResponse response = new ApiResponse("200", "TEST", podName, imageName);
         logger.info("Response: {}", response);
         return ResponseEntity.status(HttpStatus.OK).body(response);
