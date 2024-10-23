@@ -125,23 +125,24 @@ jobs:
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout-bg/values.yaml
 
       # Extract and increment appVersion for argo cd and rollouts.
+      # Extract and increment appVersion for argo cd and rollouts.
       - name: Increment appVersion
         id: increment_version
         run: |
-            increment_version() {
+          increment_version() {
             local chart_path=$1
             local env_var_name=$2
-            
+          
             current_version=$(grep '^appVersion:' ${chart_path}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
             current_date=$(date +'%Y.%m')
-            
+          
             if [[ $current_version == $current_date* ]]; then
               patch_number=$(echo $current_version | cut -d '.' -f 3)
               patch_number=$((patch_number + 1))
             else
               patch_number=0
             fi
-            
+          
             new_version="${current_date}.${patch_number}"
             echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
           }
