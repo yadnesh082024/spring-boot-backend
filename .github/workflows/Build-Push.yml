@@ -136,10 +136,10 @@ jobs:
             current_date=$(date +'%Y.%m')
             
             if [[ $current_version == $current_date* ]]; then
-            patch_number=$(echo $current_version | cut -d '.' -f 3)
-            patch_number=$((patch_number + 1))
+              patch_number=$(echo $current_version | cut -d '.' -f 3)
+              patch_number=$((patch_number + 1))
             else
-            patch_number=0
+              patch_number=0
             fi
             
             new_version="${current_date}.${patch_number}"
