@@ -122,46 +122,44 @@ jobs:
         run: |
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-cd/values.yaml
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout-bg/values.yaml
 
       # Extract and increment appVersion for argo cd and rollouts.
       - name: Increment appVersion
         id: increment_version
         run: |
-          # Extract current appVersion for argo cd
-          current_version_argo_cd=$(grep '^appVersion:' spring-boot-helm-chart-argo-cd/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
-          current_date=$(date +'%Y.%m')
-          
-          if [[ $current_version_argo_cd == $current_date* ]]; then
-            patch_number=$(echo $current_version_argo_cd | cut -d '.' -f 3)
+            increment_version() {
+            local chart_path=$1
+            local env_var_name=$2
+            
+            current_version=$(grep '^appVersion:' ${chart_path}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
+            current_date=$(date +'%Y.%m')
+            
+            if [[ $current_version == $current_date* ]]; then
+            patch_number=$(echo $current_version | cut -d '.' -f 3)
             patch_number=$((patch_number + 1))
-          else
+            else
             patch_number=0
-          fi
+            fi
+            
+            new_version="${current_date}.${patch_number}"
+            echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
+          }
           
-          new_version_argo_cd="${current_date}.${patch_number}"
-          echo "new_version_argo_cd=${new_version_argo_cd}" >> $GITHUB_ENV
-
-          # Extract current appVersion for rollouts
-          current_version_rollouts=$(grep '^appVersion:' spring-boot-helm-chart-argo-rollout/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
-          
-          if [[ $current_version_rollouts == $current_date* ]]; then
-            patch_number=$(echo $current_version_rollouts | cut -d '.' -f 3)
-            patch_number=$((patch_number + 1))
-          else
-            patch_number=0
-          fi
-          
-          new_version_rollouts="${current_date}.${patch_number}"
-          echo "new_version_rollouts=${new_version_rollouts}" >> $GITHUB_ENV
+          increment_version "spring-boot-helm-chart-argo-cd" "new_version_argo_cd"
+          increment_version "spring-boot-helm-chart-argo-rollout" "new_version_rollouts"
+          increment_version "spring-boot-helm-chart-argo-rollout-bg" "new_version_rollouts_bg"
 
       # Update appVersion in Chart.yaml
       - name: Update appVersion in Chart.yaml
         env:
           NEW_VERSION_ARGO: ${{ env.new_version_argo_cd }}
           NEW_VERSION_ROLLOUTS: ${{ env.new_version_rollouts }}
+          NEW_VERSION_ROLLOUTS_BG: ${{ env.new_version_rollouts_bg }}
         run: |
           sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ARGO}\"/" spring-boot-helm-chart-argo-cd/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS}\"/" spring-boot-helm-chart-argo-rollout/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS_BG}\"/" spring-boot-helm-chart-argo-rollout-bg/Chart.yaml
 
       # Check for changes, commit if necessary, and create a pull request if not on main.
       - name: Check for Changes and Commit
