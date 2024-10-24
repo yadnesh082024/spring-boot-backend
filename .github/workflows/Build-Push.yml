@@ -122,7 +122,7 @@ jobs:
         run: |
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-cd/values.yaml
           sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
-          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout-bg/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout-bluegreen/values.yaml
 
       # Extract and increment appVersion for argo cd and rollouts.
       # Extract and increment appVersion for argo cd and rollouts.
@@ -149,7 +149,7 @@ jobs:
           
           increment_version "spring-boot-helm-chart-argo-cd" "new_version_argo_cd"
           increment_version "spring-boot-helm-chart-argo-rollout" "new_version_rollouts"
-          increment_version "spring-boot-helm-chart-argo-rollout-bg" "new_version_rollouts_bg"
+          increment_version "spring-boot-helm-chart-argo-rollout-bluegreen" "new_version_rollouts_bg"
 
       # Update appVersion in Chart.yaml
       - name: Update appVersion in Chart.yaml
@@ -160,7 +160,7 @@ jobs:
         run: |
           sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ARGO}\"/" spring-boot-helm-chart-argo-cd/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS}\"/" spring-boot-helm-chart-argo-rollout/Chart.yaml
-          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS_BG}\"/" spring-boot-helm-chart-argo-rollout-bg/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS_BG}\"/" spring-boot-helm-chart-argo-rollout-bluegreen/Chart.yaml
 
       # Check for changes, commit if necessary, and create a pull request if not on main.
       - name: Check for Changes and Commit
