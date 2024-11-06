@@ -196,7 +196,7 @@ jobs:
       - name: Checkout Manifests
         uses: actions/checkout@v4
         with:
-          repository: https://github.com/yadnesh082024/rollouts-with-argo-cd.git
+          repository: yadnesh082024/rollouts-with-argo-cd.git
           token: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
 
       # Set up Git configuration for committing changes.
