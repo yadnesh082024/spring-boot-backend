@@ -141,7 +141,7 @@ jobs:
               patch_number=$((patch_number + 1))
             else
               patch_number=0
-            }
+            fi
           
             new_version="${current_date}.${patch_number}"
             echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
@@ -228,7 +228,7 @@ jobs:
               patch_number=$((patch_number + 1))
             else
               patch_number=0
-            }
+            fi
           
             new_version="${current_date}.${patch_number}"
             echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
