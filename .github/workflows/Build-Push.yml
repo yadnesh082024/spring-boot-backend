@@ -197,6 +197,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yadnesh082024/rollouts-with-argo-cd.git
+          ref: main
           token: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
 
       # Set up Git configuration for committing changes.
