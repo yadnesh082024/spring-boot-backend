@@ -95,7 +95,7 @@ jobs:
                docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
                docker push ${IMAGE_TAG}
                docker push ${LATEST_TAG}
-          # Output the constructed image tag to the GitHub Actions output variable.
+               # Output the constructed image tag to the GitHub Actions output variable.
                echo "image_tag=${BRANCH_NAME}-${TIMESTAMP}" >> $GITHUB_OUTPUT
 
   update-manifests:
@@ -173,14 +173,14 @@ jobs:
                 git commit -m "Updated image tag to ${IMAGE_TAG} and incremented app versions"
                 git push origin main || echo "Push failed, possibly due to lack of permissions"
                else
-          # Create a pull request if the branch is not main
+               # Create a pull request if the branch is not main
                TIMESTAMP=$(date +'%Y%m%d%H%M%S')
                BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
                git checkout -b $BRANCH_NAME
                git commit -m "Update image tag to ${IMAGE_TAG} and incremented app versions"
                git push -u origin $BRANCH_NAME
           
-          # Create the pull request using GitHub CLI
+               # Create the pull request using GitHub CLI
                gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
                fi
                else
