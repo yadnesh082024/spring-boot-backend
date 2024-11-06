@@ -1,0 +1,270 @@
+name: CI Pipeline
+
+# Workflow triggers for pull requests, manual dispatch, and pushes to specific branches.
+on:
+  pull_request:
+    types: [assigned]
+    branches: [main]
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev/**
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      # Checkout the repository code.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set up JDK 17 for the build process.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4.3.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Grant execute permissions to the Gradle wrapper script.
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Build the project and run tests using Gradle.
+      - name: Build and Test with Gradle
+        run: |
+          ./gradlew build
+          ./gradlew test jacocoTestReport
+
+      # Upload build and test results as artifacts.
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build/test-results/test
+            build/reports/jacoco/test/jacocoTestReport.xml
+
+  sonarcloud-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      # Perform a SonarCloud scan to analyze the codebase for quality and vulnerabilities.
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.java.coveragePlugin=jacoco
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.branch.name=${{ github.ref_name }}
+
+  docker-build-push:
+    needs: sonarcloud-scan
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
+    steps:
+      # Checkout the repository code again for Docker build.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Log in to Docker Hub using credentials stored in secrets.
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.3.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build and push Docker images with tags based on branch name and timestamp.
+      - name: Build and Push Docker Image
+        id: build
+        run: |
+               export TZ=Asia/Kolkata
+               TIMESTAMP=$(date +%Y%m%d%H%M%S)
+               BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
+               IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-${TIMESTAMP}"
+               LATEST_TAG="${{ secrets.DOCKER_USERNAME }}/github-actions-backend:${BRANCH_NAME}-latest"
+               docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
+               docker push ${IMAGE_TAG}
+               docker push ${LATEST_TAG}
+          # Output the constructed image tag to the GitHub Actions output variable.
+               echo "image_tag=${BRANCH_NAME}-${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+  update-manifests:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      # Checkout the Kubernetes manifests repository.
+      - name: Checkout Manifests
+        uses: actions/checkout@v4
+        with:
+          repository: yadnesh082024/spring-boot-backend-k8s-manifests
+          token: ${{ secrets.GH_PAT_UPDATE_MANIFEST }}
+
+      # Set up Git configuration for committing changes.
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
+
+      # Update Helm values with the new image tag.
+      - name: Update Helm Values
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-cd/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout-bluegreen/values.yaml
+
+      # Extract and increment appVersion for argo cd and rollouts.
+      - name: Increment appVersion
+        id: increment_version
+        run: |
+          increment_version() {
+            local chart_path=$1
+            local env_var_name=$2
+          
+            current_version=$(grep '^appVersion:' ${chart_path}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
+            current_date=$(date +'%Y.%m')
+          
+            if [[ $current_version == $current_date* ]]; then
+              patch_number=$(echo $current_version | cut -d '.' -f 3)
+              patch_number=$((patch_number + 1))
+            else
+              patch_number=0
+            }
+          
+            new_version="${current_date}.${patch_number}"
+            echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
+          }
+          
+          increment_version "spring-boot-helm-chart-argo-cd" "new_version_argo_cd"
+          increment_version "spring-boot-helm-chart-argo-rollout" "new_version_rollouts"
+          increment_version "spring-boot-helm-chart-argo-rollout-bluegreen" "new_version_rollouts_bg"
+
+      # Update appVersion in Chart.yaml
+      - name: Update appVersion in Chart.yaml
+        env:
+          NEW_VERSION_ARGO: ${{ env.new_version_argo_cd }}
+          NEW_VERSION_ROLLOUTS: ${{ env.new_version_rollouts }}
+          NEW_VERSION_ROLLOUTS_BG: ${{ env.new_version_rollouts_bg }}
+        run: |
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ARGO}\"/" spring-boot-helm-chart-argo-cd/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS}\"/" spring-boot-helm-chart-argo-rollout/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ROLLOUTS_BG}\"/" spring-boot-helm-chart-argo-rollout-bluegreen/Chart.yaml
+
+      # Check for changes, commit if necessary, and create a pull request if not on main.
+      - name: Check for Changes and Commit
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+               git add .
+               if ! git diff-index --quiet HEAD --; then
+               if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+                git commit -m "Updated image tag to ${IMAGE_TAG} and incremented app versions"
+                git push origin main || echo "Push failed, possibly due to lack of permissions"
+               else
+          # Create a pull request if the branch is not main
+               TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+               BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+               git checkout -b $BRANCH_NAME
+               git commit -m "Update image tag to ${IMAGE_TAG} and incremented app versions"
+               git push -u origin $BRANCH_NAME
+          
+          # Create the pull request using GitHub CLI
+               gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
+               fi
+               else
+               echo "No changes detected."
+               fi
+
+  update-manifests-rollouts:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    environment: backend-test-dev
+    steps:
+      # Checkout the Kubernetes manifests repository.
+      - name: Checkout Manifests
+        uses: actions/checkout@v4
+        with:
+          repository: https://github.com/yadnesh082024/rollouts-with-argo-cd.git
+          token: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
+
+      # Set up Git configuration for committing changes.
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub-Actions-CI-Build"
+          git config --global user.email "user@gitHubActions.com"
+
+      # Update Helm values with the new image tag.
+      - name: Update Helm Values
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+          sed -i "s/tag: .*/tag: ${IMAGE_TAG}/" spring-boot-helm-chart-argo-rollout/values.yaml
+
+      # Extract and increment appVersion for argo cd and rollouts.
+      - name: Increment appVersion
+        id: increment_version
+        run: |
+          increment_version() {
+            local chart_path=$1
+            local env_var_name=$2
+          
+            current_version=$(grep '^appVersion:' ${chart_path}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
+            current_date=$(date +'%Y.%m')
+          
+            if [[ $current_version == $current_date* ]]; then
+              patch_number=$(echo $current_version | cut -d '.' -f 3)
+              patch_number=$((patch_number + 1))
+            else
+              patch_number=0
+            }
+          
+            new_version="${current_date}.${patch_number}"
+            echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
+          }
+          
+          increment_version "spring-boot-helm-chart-argo-rollout" "new_version_argo_cd"
+
+      # Update appVersion in Chart.yaml
+      - name: Update appVersion in Chart.yaml
+        env:
+          NEW_VERSION_ARGO: ${{ env.new_version_argo_cd }}
+        run: |
+          sed -i "s/^appVersion:.*/appVersion: \"${NEW_VERSION_ARGO}\"/" spring-boot-helm-chart-argo-rollout/Chart.yaml
+
+
+      # Check for changes, commit if necessary, and create a pull request if not on main.
+      - name: Check for Changes and Commit
+        env:
+          IMAGE_TAG: ${{ needs.docker-build-push.outputs.image_tag }}
+        run: |
+          git add .
+          if ! git diff-index --quiet HEAD --; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+           git commit -m "Updated image tag to ${IMAGE_TAG} and incremented app versions"
+           git push origin main || echo "Push failed, possibly due to lack of permissions"
+          else
+          # Create a pull request if the branch is not main
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+          git checkout -b $BRANCH_NAME
+          git commit -m "Update image tag to ${IMAGE_TAG} and incremented app versions"
+          git push -u origin $BRANCH_NAME
+          
+          # Create the pull request using GitHub CLI
+          gh pr create --title "Updated image tag to ${IMAGE_TAG}" --body "This PR updates the image tag to ${IMAGE_TAG}."
+          fi
+          else
+          echo "No changes detected."
+          fi
