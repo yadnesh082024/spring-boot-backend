@@ -95,7 +95,7 @@ jobs:
                docker build -t ${IMAGE_TAG} -t ${LATEST_TAG} .
                docker push ${IMAGE_TAG}
                docker push ${LATEST_TAG}
-          # Output the constructed image tag to the GitHub Actions output variable.
+               # Output the constructed image tag to the GitHub Actions output variable.
                echo "image_tag=${BRANCH_NAME}-${TIMESTAMP}" >> $GITHUB_OUTPUT
 
   update-manifests:
