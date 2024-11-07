@@ -1,5 +1,6 @@
 name: 'Update Repository Manifests'
 description: 'Update image tag and appVersion for a single repository'
+
 inputs:
   repo:
     description: 'Repository name (owner/repo)'
@@ -27,11 +28,13 @@ runs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "action@github.com"
+      shell: bash
 
     - name: Update Helm values with new image tag
       run: |
         echo "Updating Helm values with new image tag: ${{ inputs.image_tag }}"
         sed -i "s/tag:.*/tag: ${{ inputs.image_tag }}/" ${{ inputs.folder }}/values.yaml
+      shell: bash
 
     - name: Calculate and update appVersion
       id: version
@@ -58,14 +61,17 @@ runs:
 
         # Set the new version as an output to be used in other steps
         echo "new_version=$new_version" >> $GITHUB_ENV
+      shell: bash
 
     - name: Update appVersion in Chart.yaml
       run: |
         echo "Updating appVersion to ${{ env.new_version }} in Chart.yaml"
         sed -i "s/^appVersion:.*/appVersion: \"${{ env.new_version }}\"/" ${{ inputs.folder }}/Chart.yaml
+      shell: bash
 
     - name: Commit and push changes
       run: |
         git add .
         git diff --exit-code || git commit -m "Update image tag and appVersion"
         git push origin HEAD
+      shell: bash
