@@ -17,16 +17,7 @@ async function run() {
       console.log(`Updating ${repo} in folder ${folder} using secret ${secret}`);
 
       // Checkout the repository using actions/checkout
-      await exec.exec(`actions/checkout@v4`, [], {
-        env: {
-          GITHUB_TOKEN: process.env[secret]
-        },
-        input: {
-          repository: `yadnesh082024/${repo}`,
-          token: process.env[secret]
-        }
-      });
-
+      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@github.com/yadnesh082024/${repo}.git`]);
       process.chdir(repo);
 
       // Set up Git configuration for committing changes
