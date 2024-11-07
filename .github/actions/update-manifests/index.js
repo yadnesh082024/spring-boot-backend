@@ -19,8 +19,8 @@ async function run() {
       // Extract the repository name from the URL
       const repoName = repo.split('/').pop().replace('.git', '');
 
-      // Checkout the repository using actions/checkout
-      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@github.com/${repoName}.git`]);
+      // Checkout the repository using git clone
+      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@${repo}`]);
       process.chdir(repoName);
 
       // Set up Git configuration for committing changes
