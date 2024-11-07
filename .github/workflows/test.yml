@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
+      # Checkout the repository to access the custom action
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -54,9 +55,9 @@ jobs:
         uses: ./.github/actions/update-manifests
         with:
           repos: |
-            https://github.com/yadnesh082024/rollouts-with-argo-cd.git
-            https://github.com/yadnesh082024/argo-rollouts-canary.git
-            https://github.com/yadnesh082024/argo-rollouts-blue-green.git
+            yadnesh082024/rollouts-with-argo-cd.git
+            yadnesh082024/argo-rollouts-canary.git
+            yadnesh082024/argo-rollouts-blue-green.git
           folders: |
             spring-boot-helm-chart-argo-rollout
             spring-boot-helm-chart-argo-rollout-canary
