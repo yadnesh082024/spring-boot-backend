@@ -73,6 +73,8 @@ async function run() {
       // Step 4: Check for changes, commit if necessary, and create a pull request if not on main
       console.log('Checking for changes...');
       await exec.exec('git add .');
+
+      // Checking for changes but handle the exit code properly
       const { exitCode } = await exec.getExecOutput('git diff-index --quiet HEAD --');
 
       if (exitCode === 1) {
@@ -94,8 +96,10 @@ async function run() {
           // Create the pull request using GitHub CLI (Ensure gh CLI is installed and authenticated)
           await exec.exec(`gh pr create --title "Updated image tag to ${imageTag}" --body "This PR updates the image tag to ${imageTag}."`);
         }
-      } else {
+      } else if (exitCode === 0) {
         console.log('No changes detected.');
+      } else {
+        throw new Error(`git diff-index failed with exit code ${exitCode}`);
       }
 
       // Clean up by removing the cloned repo
