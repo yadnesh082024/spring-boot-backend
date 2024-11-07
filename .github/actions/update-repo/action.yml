@@ -22,7 +22,8 @@ runs:
       uses: actions/checkout@v4
       with:
         repository: ${{ inputs.repo }}
-        token: ${{ inputs.secret }}  # Use the secret as the token
+        token: ${{ inputs.secret }}
+        ref: main
 
     - name: Set up Git
       run: |
