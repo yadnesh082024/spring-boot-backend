@@ -13,14 +13,13 @@ async function run() {
     // Helper function to increment appVersion
     async function incrementVersion(chartPath, envVarName) {
       const { stdout: currentVersionLine } = await exec.getExecOutput('grep', ['^appVersion:', `${chartPath}/Chart.yaml`]);
-      const { stdout: currentVersion } = await exec.getExecOutput('cut', ['-d', ' ', '-f', '2'], { input: currentVersionLine });
+      const currentVersion = currentVersionLine.split(' ')[1].trim().replace(/"/g, '');
 
-      const trimmedVersion = currentVersion.trim().replace(/"/g, '');
       const currentDate = new Date().toISOString().slice(0, 7).replace('-', '.');
       let newVersion;
 
-      if (trimmedVersion.startsWith(currentDate)) {
-        const patchNumber = parseInt(trimmedVersion.split('.')[2]) + 1;
+      if (currentVersion.startsWith(currentDate)) {
+        const patchNumber = parseInt(currentVersion.split('.')[2]) + 1;
         newVersion = `${currentDate}.${patchNumber}`;
       } else {
         newVersion = `${currentDate}.0`;
@@ -75,31 +74,32 @@ async function run() {
       await exec.exec('git add .');
 
       // Checking for changes but handle the exit code properly
-      const { exitCode } = await exec.getExecOutput('git diff-index --quiet HEAD --');
-
-      if (exitCode === 1) {
-        console.log('Changes detected. Proceeding with commit and push.');
-
-        const branchName = `update-feature/${github.context.ref_name}-${new Date().toISOString().replace(/[-:.]/g, '')}`;
-
-        // If on the main branch, directly commit and push; otherwise, create a feature branch and PR
-        if (github.context.ref === 'refs/heads/main') {
-          console.log('Committing changes to main...');
-          await exec.exec(`git commit -m "Updated image tag to ${imageTag} and incremented app versions"`);
-          await exec.exec('git push origin main');
-        } else {
-          console.log('Creating a new branch and pull request...');
-          await exec.exec(`git checkout -b ${branchName}`);
-          await exec.exec(`git commit -m "Update image tag to ${imageTag} and incremented app versions"`);
-          await exec.exec(`git push -u origin ${branchName}`);
-
-          // Create the pull request using GitHub CLI (Ensure gh CLI is installed and authenticated)
-          await exec.exec(`gh pr create --title "Updated image tag to ${imageTag}" --body "This PR updates the image tag to ${imageTag}."`);
-        }
-      } else if (exitCode === 0) {
+      try {
+        await exec.exec('git diff-index --quiet HEAD --');
         console.log('No changes detected.');
-      } else {
-        throw new Error(`git diff-index failed with exit code ${exitCode}`);
+      } catch (error) {
+        if (error.exitCode === 1) {
+          console.log('Changes detected. Proceeding with commit and push.');
+
+          const branchName = `update-feature/${github.context.ref_name}-${new Date().toISOString().replace(/[-:.]/g, '')}`;
+
+          // If on the main branch, directly commit and push; otherwise, create a feature branch and PR
+          if (github.context.ref === 'refs/heads/main') {
+            console.log('Committing changes to main...');
+            await exec.exec(`git commit -m "Updated image tag to ${imageTag} and incremented app versions"`);
+            await exec.exec('git push origin main');
+          } else {
+            console.log('Creating a new branch and pull request...');
+            await exec.exec(`git checkout -b ${branchName}`);
+            await exec.exec(`git commit -m "Update image tag to ${imageTag} and incremented app versions"`);
+            await exec.exec(`git push -u origin ${branchName}`);
+
+            // Create the pull request using GitHub CLI (Ensure gh CLI is installed and authenticated)
+            await exec.exec(`gh pr create --title "Updated image tag to ${imageTag}" --body "This PR updates the image tag to ${imageTag}."`);
+          }
+        } else {
+          throw error;
+        }
       }
 
       // Clean up by removing the cloned repo
