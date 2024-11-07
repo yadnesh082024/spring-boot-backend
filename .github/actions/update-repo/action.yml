@@ -18,26 +18,23 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # Checkout the Kubernetes manifests repository.
     - name: Checkout Manifests
       uses: actions/checkout@v4
       with:
         repository: ${{ inputs.repo }}
-        token: ${{ secrets[inputs.secret] }}  # Using the secret passed as input
+        token: ${{ inputs.secret }}  # Use the secret as the token
 
-    # Set up Git configuration for committing changes.
     - name: Set up Git
       run: |
         git config --global user.name "GitHub-Actions-CI-Build"
         git config --global user.email "user@gitHubActions.com"
+      shell: bash  # Specify the shell explicitly
 
-    # Update Helm values with the new image tag.
     - name: Update Helm Values
       run: |
-        echo "Updating Helm values with new image tag: ${{ inputs.image_tag }}"
-        sed -i "s/tag:.*/tag: ${{ inputs.image_tag }}/" ${{ inputs.folder }}/values.yaml
+        sed -i "s/tag: .*/tag: ${{ inputs.image_tag }}/" ${{ inputs.folder }}/values.yaml
+      shell: bash  # Specify the shell explicitly
 
-    # Extract and increment appVersion for Argo CD and Rollouts.
     - name: Increment appVersion
       id: increment_version
       run: |
@@ -60,32 +57,32 @@ runs:
         }
         
         increment_version ${{ inputs.folder }} "new_version"
+      shell: bash  # Specify the shell explicitly
 
-    # Update appVersion in Chart.yaml
     - name: Update appVersion in Chart.yaml
       run: |
-        echo "Updating appVersion to ${{ env.new_version }} in Chart.yaml"
         sed -i "s/^appVersion:.*/appVersion: \"${{ env.new_version }}\"/" ${{ inputs.folder }}/Chart.yaml
+      shell: bash  # Specify the shell explicitly
 
-    # Check for changes, commit if necessary, and create a pull request if not on main.
     - name: Check for Changes and Commit
       run: |
         git add .
         if ! git diff-index --quiet HEAD --; then
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            git commit -m "Updated image tag to ${{ inputs.image_tag }} and incremented app versions"
+            git commit -m "Updated image tag to ${inputs.image_tag} and incremented app versions"
             git push origin main || echo "Push failed, possibly due to lack of permissions"
           else
             # Create a pull request if the branch is not main
             TIMESTAMP=$(date +'%Y%m%d%H%M%S')
             BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
             git checkout -b $BRANCH_NAME
-            git commit -m "Update image tag to ${{ inputs.image_tag }} and incremented app versions"
+            git commit -m "Update image tag to ${inputs.image_tag} and incremented app versions"
             git push -u origin $BRANCH_NAME
         
             # Create the pull request using GitHub CLI
-            gh pr create --title "Updated image tag to ${{ inputs.image_tag }}" --body "This PR updates the image tag to ${{ inputs.image_tag }}."
+            gh pr create --title "Updated image tag to ${inputs.image_tag}" --body "This PR updates the image tag to ${inputs.image_tag}."
           fi
         else
           echo "No changes detected."
         fi
+      shell: bash  # Specify the shell explicitly

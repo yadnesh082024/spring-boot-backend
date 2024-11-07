@@ -38,40 +38,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
-      # Checkout the repository first so custom actions are available
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # Use the custom action to update repo 1 (rollouts-with-argo-cd)
       - name: Update repo 1 (rollouts-with-argo-cd)
-        uses: ./.github/actions/update-repo  # Reference the relative path of the custom action
+        uses: ./.github/actions/update-repo
         with:
           repo: "yadnesh082024/rollouts-with-argo-cd"
           folder: "spring-boot-helm-chart-argo-rollout"
           secret: "GH_TOKEN_REPO1"
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
-          GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
-
-      # Use the custom action to update repo 2 (argo-rollouts-canary)
-      - name: Update repo 2 (argo-rollouts-canary)
-        uses: ./.github/actions/update-repo
-        with:
-          repo: "yadnesh082024/argo-rollouts-canary"
-          folder: "spring-boot-helm-chart-argo-rollout-canary"
-          secret: "GH_TOKEN_REPO2"
-          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
-        env:
-          GH_TOKEN_REPO2: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
-
-      # Use the custom action to update repo 3 (argo-rollouts-blue-green)
-      - name: Update repo 3 (argo-rollouts-blue-green)
-        uses: ./.github/actions/update-repo
-        with:
-          repo: "yadnesh082024/argo-rollouts-blue-green"
-          folder: "spring-boot-helm-chart-argo-rollout-bluegreen"
-          secret: "GH_TOKEN_REPO3"
-          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
-        env:
-          GH_TOKEN_REPO3: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
+          GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}  # Correctly pass the secret here
 
