@@ -196,7 +196,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update Manifests Rollouts
-        uses: ./github/actions/update-manifests
+        uses: ./.github/actions/update-manifests
         with:
           repos: 'https://github.com/yadnesh082024/rollouts-with-argo-cd.git https://github.com/yadnesh082024/argo-rollouts-canary.git https://github.com/yadnesh082024/argo-rollouts-blue-green.git'
           folders: 'spring-boot-helm-chart-argo-rollout spring-boot-helm-chart-argo-rollout-canary spring-boot-helm-chart-argo-rollout-bluegreen'
