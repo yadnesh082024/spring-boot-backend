@@ -75,9 +75,12 @@ async function run() {
       await exec.exec('git add .');
       const { exitCode } = await exec.getExecOutput('git diff-index --quiet HEAD --');
 
-      if (exitCode !== 0) {
+      if (exitCode === 1) {
+        console.log('Changes detected. Proceeding with commit and push.');
+
         const branchName = `update-feature/${github.context.ref_name}-${new Date().toISOString().replace(/[-:.]/g, '')}`;
 
+        // If on the main branch, directly commit and push; otherwise, create a feature branch and PR
         if (github.context.ref === 'refs/heads/main') {
           console.log('Committing changes to main...');
           await exec.exec(`git commit -m "Updated image tag to ${imageTag} and incremented app versions"`);
