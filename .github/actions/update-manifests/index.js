@@ -1,13 +1,13 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
 const github = require('@actions/github');
+const fs = require('fs');
+const path = require('path');
 
 async function run() {
   try {
-    // Retrieve input values from the action's configuration
-    const repos = core.getInput('repos').split('\n').map(repo => repo.trim()).filter(repo => repo);
-    const folders = core.getInput('folders').split('\n').map(folder => folder.trim()).filter(folder => folder);
-    const secrets = core.getInput('secrets').split('\n').map(secret => secret.trim()).filter(secret => secret);
+    // Retrieve the JSON-like input for repos, folders, and tokens
+    const reposAndFolders = JSON.parse(core.getInput('repos_and_folders'));
     const imageTag = core.getInput('image_tag');
 
     // Helper function to increment appVersion
@@ -31,24 +31,31 @@ async function run() {
       return newVersion;
     }
 
-    // Loop through each repository and folder
-    for (let i = 0; i < repos.length; i++) {
-      const repo = repos[i];
-      const folder = folders[i];
-      const secret = secrets[i];
+    // Loop through each repository-folder-token mapping
+    for (let i = 0; i < reposAndFolders.length; i++) {
+      const { repo, folder, token } = reposAndFolders[i];
 
-      console.log(`Updating ${repo} in folder ${folder} using secret ${secret}`);
+      console.log(`Updating ${repo} in folder ${folder} using secret ${token}`);
 
       // Extract the repository name from the URL
       const repoName = repo.split('/').pop().replace('.git', '');
 
-      // Checkout the repository using git clone
-      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@github.com/${repo}`]);
+      // Clone the repository using the provided token
+      await exec.exec('git', ['clone', `https://x-access-token:${process.env[token]}@github.com/${repo}`]);
       process.chdir(repoName);
 
       // Set up Git configuration for committing changes
       await exec.exec('git config --global user.name "GitHub-Actions-CI-Build"');
       await exec.exec('git config --global user.email "user@gitHubActions.com"');
+
+      // Check if the folder exists in the repo before continuing
+      const folderPath = path.join(process.cwd(), folder);
+      if (!fs.existsSync(folderPath)) {
+        console.log(`Skipping ${repo} as folder ${folder} does not exist.`);
+        process.chdir('..');
+        await exec.exec(`rm -rf ${repoName}`);
+        continue;
+      }
 
       // Step 1: Update Helm values with the new image tag
       console.log('Updating Helm values with the new image tag...');
@@ -56,29 +63,12 @@ async function run() {
 
       // Step 2: Increment appVersion for each chart, based on the folder
       console.log('Incrementing appVersion for Argo CD and Rollouts...');
-      for (let j = 0; j < folders.length; j++) {
-        const folder = folders[j];
-        const envVarName = `new_version_${folder.replace(/-/g, '_').toLowerCase()}`;
-
-        // Call the incrementVersion function for each folder
-        const newVersion = await incrementVersion(folder, envVarName);
-
-        // Store the new version in the environment variable dynamically
-        core.exportVariable(envVarName, newVersion);
-        console.log(`Updated version for ${folder}: ${newVersion}`);
-      }
+      const newVersion = await incrementVersion(folder, `new_version_${folder.replace(/-/g, '_').toLowerCase()}`);
 
       // Step 3: Update appVersion in Chart.yaml for each folder
       console.log('Updating appVersion in Chart.yaml files...');
-      for (let j = 0; j < folders.length; j++) {
-        const folder = folders[j];
-        const envVarName = `new_version_${folder.replace(/-/g, '_').toLowerCase()}`;
-
-        const newVersion = process.env[envVarName];
-
-        await exec.exec(`sed -i "s/^appVersion:.*/appVersion: \\"${newVersion}\\"/" ${folder}/Chart.yaml`);
-        console.log(`Updated appVersion in ${folder}/Chart.yaml to ${newVersion}`);
-      }
+      await exec.exec(`sed -i "s/^appVersion:.*/appVersion: \\"${newVersion}\\"/" ${folder}/Chart.yaml`);
+      console.log(`Updated appVersion in ${folder}/Chart.yaml to ${newVersion}`);
 
       // Step 4: Check for changes, commit if necessary, and create a pull request if not on main
       console.log('Checking for changes...');
