@@ -88,7 +88,7 @@ async function run() {
           await exec.exec(`git commit -m "Update image tag to ${imageTag} and incremented app versions"`);
           await exec.exec(`git push -u origin ${branchName}`);
 
-          // Create the pull request using GitHub CLI
+          // Create the pull request using GitHub CLI (Ensure gh CLI is installed and authenticated)
           await exec.exec(`gh pr create --title "Updated image tag to ${imageTag}" --body "This PR updates the image tag to ${imageTag}."`);
         }
       } else {
