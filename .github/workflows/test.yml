@@ -47,8 +47,6 @@ jobs:
         with:
           repo: "yadnesh082024/rollouts-with-argo-cd"
           folder: "spring-boot-helm-chart-argo-rollout"
-          secret: "GH_TOKEN_REPO1"
+          secret: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
-        env:
-          GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}  # Correctly pass the secret here
 
