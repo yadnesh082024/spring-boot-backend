@@ -32,11 +32,12 @@ async function run() {
 
       // Extract and increment appVersion for Argo CD and rollouts
       const { stdout: currentVersion } = await exec.getExecOutput(`grep '^appVersion:' ${folder}/Chart.yaml | cut -d ' ' -f 2`);
+      const trimmedVersion = currentVersion.trim();
       const currentDate = new Date().toISOString().slice(0, 7).replace('-', '.');
       let newVersion;
 
-      if (currentVersion.trim().startsWith(currentDate)) {
-        const patchNumber = parseInt(currentVersion.trim().split('.')[2]) + 1;
+      if (trimmedVersion.startsWith(currentDate)) {
+        const patchNumber = parseInt(trimmedVersion.split('.')[2]) + 1;
         newVersion = `${currentDate}.${patchNumber}`;
       } else {
         newVersion = `${currentDate}.0`;
