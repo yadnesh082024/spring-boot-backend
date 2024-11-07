@@ -1,18 +1,14 @@
 name: 'Update Manifests Rollouts'
 description: 'Update appVersion and image tag for multiple repositories'
+
 inputs:
-  repos:
-    description: 'List of repositories'
-    required: true
-  folders:
-    description: 'List of parent folders for each repository'
-    required: true
-  secrets:
-    description: 'List of secrets for each repository'
+  repos_and_folders:
+    description: 'Map of repositories, folders, and secrets'
     required: true
   image_tag:
     description: 'New image tag'
     required: true
+
 runs:
-  using: 'node16'
+  using: 'node22'
   main: 'index.js'
