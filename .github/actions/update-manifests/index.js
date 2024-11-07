@@ -31,7 +31,9 @@ async function run() {
       await exec.exec(`sed -i "s/tag: .*/tag: ${imageTag}/" ${folder}/values.yaml`);
 
       // Extract and increment appVersion for Argo CD and rollouts
-      const { stdout: currentVersion } = await exec.getExecOutput(`grep '^appVersion:' ${folder}/Chart.yaml | cut -d ' ' -f 2`);
+      const { stdout: currentVersionLine } = await exec.getExecOutput(`grep`, ['^appVersion:', `${folder}/Chart.yaml`]);
+      const { stdout: currentVersion } = await exec.getExecOutput('cut', ['-d', ' ', '-f', '2'], { input: currentVersionLine });
+
       const trimmedVersion = currentVersion.trim();
       const currentDate = new Date().toISOString().slice(0, 7).replace('-', '.');
       let newVersion;
