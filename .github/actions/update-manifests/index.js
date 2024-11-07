@@ -31,12 +31,12 @@ async function run() {
       await exec.exec(`sed -i "s/tag: .*/tag: ${imageTag}/" ${folder}/values.yaml`);
 
       // Extract and increment appVersion for Argo CD and rollouts
-      const { stdout: currentVersion } = await exec.getExecOutput(`grep '^appVersion:' ${folder}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"'`);
+      const { stdout: currentVersion } = await exec.getExecOutput(`grep '^appVersion:' ${folder}/Chart.yaml | cut -d ' ' -f 2`);
       const currentDate = new Date().toISOString().slice(0, 7).replace('-', '.');
       let newVersion;
 
-      if (currentVersion.startsWith(currentDate)) {
-        const patchNumber = parseInt(currentVersion.split('.')[2]) + 1;
+      if (currentVersion.trim().startsWith(currentDate)) {
+        const patchNumber = parseInt(currentVersion.trim().split('.')[2]) + 1;
         newVersion = `${currentDate}.${patchNumber}`;
       } else {
         newVersion = `${currentDate}.0`;
