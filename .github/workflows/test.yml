@@ -38,6 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
+      # Checkout the repository code again for Docker build.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Update repo 1 (rollouts-with-argo-cd)
         uses: ./.github/actions/update-repo
         with:
