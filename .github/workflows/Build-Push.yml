@@ -210,6 +210,6 @@ jobs:
           secrets: 'GH_TOKEN_REPO1 GH_TOKEN_REPO2 GH_TOKEN_REPO3'
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
-          GH_TOKEN_REPO1: ${{ secrets.secrets.GH_TOKEN_ROLLOUTS_REPO }}
+          GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
           GH_TOKEN_REPO2: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
           GH_TOKEN_REPO3: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
