@@ -4,9 +4,9 @@ const github = require('@actions/github');
 
 async function run() {
   try {
-    const repos = core.getInput('repos').split(' ');
-    const folders = core.getInput('folders').split(' ');
-    const secrets = core.getInput('secrets').split(' ');
+    const repos = core.getInput('repos').split('\n').map(repo => repo.trim()).filter(repo => repo);
+    const folders = core.getInput('folders').split('\n').map(folder => folder.trim()).filter(folder => folder);
+    const secrets = core.getInput('secrets').split('\n').map(secret => secret.trim()).filter(secret => secret);
     const imageTag = core.getInput('image_tag');
 
     for (let i = 0; i < repos.length; i++) {
@@ -16,9 +16,12 @@ async function run() {
 
       console.log(`Updating ${repo} in folder ${folder} using secret ${secret}`);
 
+      // Extract the repository name from the URL
+      const repoName = repo.split('/').pop().replace('.git', '');
+
       // Checkout the repository using actions/checkout
-      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@github.com/yadnesh082024/${repo}.git`]);
-      process.chdir(repo);
+      await exec.exec('git', ['clone', `https://x-access-token:${process.env[secret]}@github.com/${repoName}.git`]);
+      process.chdir(repoName);
 
       // Set up Git configuration for committing changes
       await exec.exec('git config --global user.name "GitHub-Actions-CI-Build"');
@@ -62,7 +65,7 @@ async function run() {
       }
 
       process.chdir('..');
-      await exec.exec(`rm -rf ${repo}`);
+      await exec.exec(`rm -rf ${repoName}`);
     }
   } catch (error) {
     core.setFailed(error.message);

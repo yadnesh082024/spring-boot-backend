@@ -202,12 +202,22 @@ jobs:
           npm install
           cd ../../../
 
+      # Use the custom action to update manifests
       - name: Update Manifests Rollouts
         uses: ./.github/actions/update-manifests
         with:
-          repos: 'https://github.com/yadnesh082024/rollouts-with-argo-cd.git https://github.com/yadnesh082024/argo-rollouts-canary.git https://github.com/yadnesh082024/argo-rollouts-blue-green.git'
-          folders: 'spring-boot-helm-chart-argo-rollout spring-boot-helm-chart-argo-rollout-canary spring-boot-helm-chart-argo-rollout-bluegreen'
-          secrets: 'GH_TOKEN_REPO1 GH_TOKEN_REPO2 GH_TOKEN_REPO3'
+          repos: |
+            https://github.com/yadnesh082024/rollouts-with-argo-cd.git
+            https://github.com/yadnesh082024/argo-rollouts-canary.git
+            https://github.com/yadnesh082024/argo-rollouts-blue-green.git
+          folders: |
+            spring-boot-helm-chart-argo-rollout
+            spring-boot-helm-chart-argo-rollout-canary
+            spring-boot-helm-chart-argo-rollout-bluegreen
+          secrets: |
+            GH_TOKEN_REPO1
+            GH_TOKEN_REPO2
+            GH_TOKEN_REPO3
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
           GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
