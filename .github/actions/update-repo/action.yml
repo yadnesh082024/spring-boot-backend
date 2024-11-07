@@ -88,5 +88,5 @@ runs:
         else
           echo "No changes detected."
         fi
-      shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+      shell: bash
 
