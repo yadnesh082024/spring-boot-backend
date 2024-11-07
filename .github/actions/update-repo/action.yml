@@ -1,0 +1,71 @@
+name: 'Update Repository Manifests'
+description: 'Update image tag and appVersion for a single repository'
+inputs:
+  repo:
+    description: 'Repository name (owner/repo)'
+    required: true
+  folder:
+    description: 'Folder containing the Helm chart'
+    required: true
+  secret:
+    description: 'GitHub token for accessing the repository'
+    required: true
+  image_tag:
+    description: 'New image tag to be used in the Helm charts'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.repo }}
+        token: ${{ secrets[inputs.secret] }}
+
+    - name: Set up Git configuration
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "action@github.com"
+
+    - name: Update Helm values with new image tag
+      run: |
+        echo "Updating Helm values with new image tag: ${{ inputs.image_tag }}"
+        sed -i "s/tag:.*/tag: ${{ inputs.image_tag }}/" ${{ inputs.folder }}/values.yaml
+
+    - name: Calculate and update appVersion
+      id: version
+      run: |
+        # Get current appVersion from Chart.yaml
+        current_version=$(grep '^appVersion:' ${{ inputs.folder }}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
+        echo "Current appVersion: $current_version"
+
+        # Extract date (YYYY.MM) from current date
+        current_date=$(date +"%Y.%m")
+        echo "Current date: $current_date"
+
+        # Check if the version starts with the current date
+        if [[ $current_version =~ ^$current_date ]]; then
+          # If it starts with current date, increment the patch number
+          patch_version=$(echo $current_version | cut -d '.' -f 3)
+          new_version="$current_date.$((patch_version + 1))"
+        else
+          # If it doesn't, set the new version to the current date with patch 0
+          new_version="$current_date.0"
+        fi
+
+        echo "New appVersion: $new_version"
+
+        # Set the new version as an output to be used in other steps
+        echo "new_version=$new_version" >> $GITHUB_ENV
+
+    - name: Update appVersion in Chart.yaml
+      run: |
+        echo "Updating appVersion to ${{ env.new_version }} in Chart.yaml"
+        sed -i "s/^appVersion:.*/appVersion: \"${{ env.new_version }}\"/" ${{ inputs.folder }}/Chart.yaml
+
+    - name: Commit and push changes
+      run: |
+        git add .
+        git diff --exit-code || git commit -m "Update image tag and appVersion"
+        git push origin HEAD

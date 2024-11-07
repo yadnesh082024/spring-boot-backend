@@ -39,26 +39,35 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout the repository
+        uses: actions/checkout@v2
 
-      # Install dependencies for the custom action
-      - name: Install Dependencies
-        run: |
-          cd .github/actions/update-manifests
-          npm install
-          cd ../../../
-      - name: Update Manifests Rollouts
-        uses: ./.github/actions/update-manifests
+      - name: Update repo 1
+        uses: ./.github/actions/update-repo  # Path to your custom action
         with:
-          repos_and_folders: |
-            [
-              {"repo": "yadnesh082024/rollouts-with-argo-cd.git", "folder": "spring-boot-helm-chart-argo-rollout", "token": "GH_TOKEN_REPO1"},
-              {"repo": "yadnesh082024/argo-rollouts-canary.git", "folder": "spring-boot-helm-chart-argo-rollout-canary", "token": "GH_TOKEN_REPO2"},
-              {"repo": "yadnesh082024/argo-rollouts-blue-green.git", "folder": "spring-boot-helm-chart-argo-rollout-bluegreen", "token": "GH_TOKEN_REPO3"}
-            ]
+          repo: "yadnesh082024/rollouts-with-argo-cd"
+          folder: "spring-boot-helm-chart-argo-rollout"
+          secret: "GH_TOKEN_REPO1"
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
           GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
+
+      - name: Update repo 2
+        uses: ./.github/actions/update-repo  # Path to your custom action
+        with:
+          repo: "yadnesh082024/argo-rollouts-canary"
+          folder: "spring-boot-helm-chart-argo-rollout-canary"
+          secret: "GH_TOKEN_REPO2"
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
+        env:
           GH_TOKEN_REPO2: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
+
+      - name: Update repo 3
+        uses: ./.github/actions/update-repo  # Path to your custom action
+        with:
+          repo: "yadnesh082024/argo-rollouts-blue-green"
+          folder: "spring-boot-helm-chart-argo-rollout-bluegreen"
+          secret: "GH_TOKEN_REPO3"
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
+        env:
           GH_TOKEN_REPO3: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
