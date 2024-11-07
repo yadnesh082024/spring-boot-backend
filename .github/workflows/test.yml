@@ -42,11 +42,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Update repo 1 (rollouts-with-argo-cd)
+      - name: Update rollouts-with-argo-cd
         uses: ./.github/actions/update-repo
         with:
           repo: "yadnesh082024/rollouts-with-argo-cd"
           folder: "spring-boot-helm-chart-argo-rollout"
           secret: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
+
+      - name: Update argo-rollouts-canary
+        uses: ./.github/actions/update-repo
+        with:
+          repo: "yadnesh082024/argo-rollouts-canary"
+          folder: "spring-boot-helm-chart-argo-rollout-canary"
+          secret: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
+
+      - name: Update argo-rollouts-blue-green
+        uses: ./.github/actions/update-repo
+        with:
+          repo: "yadnesh082024/argo-rollouts-blue-green"
+          folder: "spring-boot-helm-chart-argo-rollout-bluegreen"
+          secret: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
           image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
 
