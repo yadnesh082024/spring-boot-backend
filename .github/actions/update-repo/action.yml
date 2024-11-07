@@ -90,3 +90,7 @@ runs:
         fi
       shell: bash
 
+    - name: Checkout Original Repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}
