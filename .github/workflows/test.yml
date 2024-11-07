@@ -38,8 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: backend-test-dev
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
 
       - name: Update repo 1 (rollouts-with-argo-cd)
         uses: ./.github/actions/update-repo
@@ -47,7 +45,7 @@ jobs:
           repo: "yadnesh082024/rollouts-with-argo-cd"
           folder: "spring-boot-helm-chart-argo-rollout"
           secret: "GH_TOKEN_REPO1"
-          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}  # Use image_tag from docker-build-push job
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
           GH_TOKEN_REPO1: ${{ secrets.GH_TOKEN_ROLLOUTS_REPO }}
 
@@ -57,7 +55,7 @@ jobs:
           repo: "yadnesh082024/argo-rollouts-canary"
           folder: "spring-boot-helm-chart-argo-rollout-canary"
           secret: "GH_TOKEN_REPO2"
-          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}  # Use image_tag from docker-build-push job
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
           GH_TOKEN_REPO2: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}
 
@@ -67,6 +65,6 @@ jobs:
           repo: "yadnesh082024/argo-rollouts-blue-green"
           folder: "spring-boot-helm-chart-argo-rollout-bluegreen"
           secret: "GH_TOKEN_REPO3"
-          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}  # Use image_tag from docker-build-push job
+          image_tag: ${{ needs.docker-build-push.outputs.image_tag }}
         env:
           GH_TOKEN_REPO3: ${{ secrets.GH_PRIVATE_REPO_TOKEN }}

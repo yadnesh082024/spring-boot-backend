@@ -18,60 +18,74 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout the repository
+    # Checkout the Kubernetes manifests repository.
+    - name: Checkout Manifests
       uses: actions/checkout@v4
       with:
         repository: ${{ inputs.repo }}
-        token: ${{ secrets[inputs.secret] }}
+        token: ${{ secrets[inputs.secret] }}  # Using the secret passed as input
 
-    - name: Set up Git configuration
+    # Set up Git configuration for committing changes.
+    - name: Set up Git
       run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "action@github.com"
-      shell: bash
+        git config --global user.name "GitHub-Actions-CI-Build"
+        git config --global user.email "user@gitHubActions.com"
 
-    - name: Update Helm values with new image tag
+    # Update Helm values with the new image tag.
+    - name: Update Helm Values
       run: |
         echo "Updating Helm values with new image tag: ${{ inputs.image_tag }}"
         sed -i "s/tag:.*/tag: ${{ inputs.image_tag }}/" ${{ inputs.folder }}/values.yaml
-      shell: bash
 
-    - name: Calculate and update appVersion
-      id: version
+    # Extract and increment appVersion for Argo CD and Rollouts.
+    - name: Increment appVersion
+      id: increment_version
       run: |
-        # Get current appVersion from Chart.yaml
-        current_version=$(grep '^appVersion:' ${{ inputs.folder }}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
-        echo "Current appVersion: $current_version"
+        increment_version() {
+          local chart_path=$1
+          local env_var_name=$2
+        
+          current_version=$(grep '^appVersion:' ${chart_path}/Chart.yaml | cut -d ' ' -f 2 | tr -d '"')
+          current_date=$(date +'%Y.%m')
+        
+          if [[ $current_version == $current_date* ]]; then
+            patch_number=$(echo $current_version | cut -d '.' -f 3)
+            patch_number=$((patch_number + 1))
+          else
+            patch_number=0
+          fi
+        
+          new_version="${current_date}.${patch_number}"
+          echo "${env_var_name}=${new_version}" >> $GITHUB_ENV
+        }
+        
+        increment_version ${{ inputs.folder }} "new_version"
 
-        # Extract date (YYYY.MM) from current date
-        current_date=$(date +"%Y.%m")
-        echo "Current date: $current_date"
-
-        # Check if the version starts with the current date
-        if [[ $current_version =~ ^$current_date ]]; then
-          # If it starts with current date, increment the patch number
-          patch_version=$(echo $current_version | cut -d '.' -f 3)
-          new_version="$current_date.$((patch_version + 1))"
-        else
-          # If it doesn't, set the new version to the current date with patch 0
-          new_version="$current_date.0"
-        fi
-
-        echo "New appVersion: $new_version"
-
-        # Set the new version as an output to be used in other steps
-        echo "new_version=$new_version" >> $GITHUB_ENV
-      shell: bash
-
+    # Update appVersion in Chart.yaml
     - name: Update appVersion in Chart.yaml
       run: |
         echo "Updating appVersion to ${{ env.new_version }} in Chart.yaml"
         sed -i "s/^appVersion:.*/appVersion: \"${{ env.new_version }}\"/" ${{ inputs.folder }}/Chart.yaml
-      shell: bash
 
-    - name: Commit and push changes
+    # Check for changes, commit if necessary, and create a pull request if not on main.
+    - name: Check for Changes and Commit
       run: |
         git add .
-        git diff --exit-code || git commit -m "Update image tag and appVersion"
-        git push origin HEAD
-      shell: bash
+        if ! git diff-index --quiet HEAD --; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            git commit -m "Updated image tag to ${{ inputs.image_tag }} and incremented app versions"
+            git push origin main || echo "Push failed, possibly due to lack of permissions"
+          else
+            # Create a pull request if the branch is not main
+            TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+            BRANCH_NAME="update-feature/${{ github.ref_name }}-${TIMESTAMP}"
+            git checkout -b $BRANCH_NAME
+            git commit -m "Update image tag to ${{ inputs.image_tag }} and incremented app versions"
+            git push -u origin $BRANCH_NAME
+        
+            # Create the pull request using GitHub CLI
+            gh pr create --title "Updated image tag to ${{ inputs.image_tag }}" --body "This PR updates the image tag to ${{ inputs.image_tag }}."
+          fi
+        else
+          echo "No changes detected."
+        fi
